@@ -1,0 +1,8 @@
+Levels: 1
+
+Name: Abyss
+Dimensions: 16 16
+MaxStepDist: 4
+DrunkSteps: 5
+NumBackgrounds: 1
+resources/backgrounds/background2.png
