@@ -221,7 +221,7 @@ void Marine::update(float dt) {
 
 			if (portalContains == -1 || (ltbl::vectorMagnitude(_reactedPosition - _prevPosition) < _stuckVelocity * _stats->_walkRate * dt) || _hitWall) {
 				// Guide to portal, since we are stuck but on a portal tile
-				switch (portalContains) {
+				switch (portal) {
 				case 0:
 					_target = sf::Vector2f(getRoom()->getWidth() - getRoom()->_wallRange, getRoom()->getHeight() * 0.5f);
 					break;
