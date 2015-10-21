@@ -170,7 +170,7 @@ void EnemyMarine::face(float &angle, float rate, float dt) {
 void EnemyMarine::update(float dt) {
 	_isSelected = getGame()->_selection.find(this) != getGame()->_selection.end();
 
-	if (!_hitWall && ltbl::vectorMagnitude(_target - _position) < 0.95f * _stats->_walkRate * dt) {
+	if (!_hitWall && ltbl::vectorMagnitude(_target - _position) < 0.5f * _stats->_walkRate * dt) {
 		_attack = true;
 		_target = _position;
 

@@ -37,11 +37,11 @@ void Marine::Assets::load() {
 }
 
 Marine::Marine()
-	: _prevPosition(0.0f, 0.0f), _position(0.0f, 0.0f), _target(0.0f, 0.0f), _pTarget(nullptr), _hold(false),
+	: _prevPosition(0.0f, 0.0f), _position(0.0f, 0.0f), _reactedPosition(0.0f, 0.0f), _pushedOverVel(false), _target(0.0f, 0.0f), _pTarget(nullptr), _hold(false),
 	_rotation(0.0f), _attack(false), _footCycle(0.0f), _footCycleRate(0.09f),
 	_firingCycle(0.0f), _firingCycleRate(10.0f), _currentFlash(0), _fireSoundTimer(0.0f), _maxFireSoundTime(0.05f),
 	_isSelected(false), _idleFaceDirection(0.0f), _idleFaceTime(5.0f), _lastFacedDirection(0.0f), _wantsTransit(false),
-	_hitWall(false)
+	_hit(false), _hitWall(false), _stuckTimer(0.0f), _stuckTime(0.2f), _stuckTime_transit(8.0f), _stuckVelocity(0.125f)
 {
 	_name = "marine";
 	_type = 1;
@@ -84,6 +84,7 @@ void Marine::create() {
 
 void Marine::setPosition(const sf::Vector2f &position) {
 	_position = position;
+	_reactedPosition = position;
 }
 
 void Marine::setRotation(float rotation) {
@@ -96,6 +97,7 @@ void Marine::move(sf::Vector2f &position) {
 	_pTarget = nullptr;
 	_hold = false;
 	_wantsTransit = false;
+	_stuckTimer = 0.0f;
 }
 
 void Marine::attackMove(const sf::Vector2f &position) {
@@ -103,6 +105,7 @@ void Marine::attackMove(const sf::Vector2f &position) {
 	_target = position;
 	_hold = false;
 	_wantsTransit = false;
+	_stuckTimer = 0.0f;
 }
 
 void Marine::transitMove(sf::Vector2f &position) {
@@ -111,11 +114,13 @@ void Marine::transitMove(sf::Vector2f &position) {
 	_pTarget = nullptr;
 	_hold = false;
 	_wantsTransit = true;
+	_stuckTimer = 0.0f;
 }
 
 void Marine::split() {
 	_attack = false;
 	_target = _position;
+	_stuckTimer = 0.0f;
 
 	// Accumulate pushes
 	std::vector<QuadtreeOccupant*> occupants;
@@ -183,9 +188,14 @@ void Marine::update(float dt) {
 
 	int portal = getRoom()->getPortal(getAABB());
 
-	if (!_hitWall && portal == -1 && ltbl::vectorMagnitude(_target - _position) < 0.95f * _stats->_walkRate * dt) {
+	// Get collision detected (reacted) position
+	_prevPosition = _reactedPosition;
+	_reactedPosition = _position;
+	
+	if (ltbl::vectorMagnitude(_target - _reactedPosition) < _stats->_walkRate * dt) {
 		_attack = true;
-		_target = _position;
+		_target = _reactedPosition;
+		_stuckTimer = 0.0f;
 
 		// Settle feet
 		_footCycle += (0.0f - _footCycle) * 1.2f * dt;
@@ -209,7 +219,7 @@ void Marine::update(float dt) {
 			// If not contained by portal
 			int portalContains = getRoom()->getPortalContains(getAABB());
 
-			if (portalContains == -1) {
+			if (portalContains == -1 || ltbl::vectorMagnitude(_position - _prevPosition) < _stuckVelocity * _stats->_walkRate * dt) {
 				// Guide to portal, since we are stuck but on a portal tile
 				switch (portalContains) {
 				case 0:
@@ -286,6 +296,12 @@ void Marine::update(float dt) {
 				_pTarget = nullptr;
 
 				_wantsTransit = false;
+
+				// Remove self from selection if in it
+				std::unordered_set<Entity*>::iterator it = getGame()->_selection.find(this);
+
+				if (it != getGame()->_selection.end())
+					getGame()->_selection.erase(it);
 
 				transit(portal);
 			}
@@ -396,9 +412,20 @@ void Marine::update(float dt) {
 		_firingCycle = 0.0f;
 	}
 
-	if (!_hitWall && portal == -1 && ltbl::vectorMagnitude(_position - _prevPosition) < 0.25f * _stats->_walkRate * dt) {
-		// Stop walking, stuck
-		_target = _position;
+	float vel = ltbl::vectorMagnitude(_reactedPosition - _prevPosition);
+
+	if (!_hitWall && (!_wantsTransit || portal != -1) && (_pushedOverVel || vel < _stuckVelocity * _stats->_walkRate * dt)) {
+		if (_stuckTimer < (_wantsTransit ? _stuckTime_transit : _stuckTime)) {
+			_stuckTimer += dt;
+		}
+		else {
+			_attack = true;
+			_target = _reactedPosition;
+			_stuckTimer = 0.0f;
+		}
+
+		// Settle feet
+		_footCycle += (0.0f - _footCycle) * 1.2f * dt;
 	}
 
 	// If not walking
@@ -437,11 +464,11 @@ void Marine::update(float dt) {
 		splat->create(_position, _rotation + rotationNoise(getGame()->_generator), 30.0f);
 	}
 
+	_hit = false;
 	_hitWall = false;
+	_pushedOverVel = false;
 
 	quadtreeUpdate();
-
-	_prevPosition = _position;
 }
 
 void Marine::subUpdate(float dt, int subStep, int numSubSteps) {
@@ -474,12 +501,17 @@ void Marine::subUpdate(float dt, int subStep, int numSubSteps) {
 
 			float dist = ltbl::vectorMagnitude(dir);
 
-			if (dist < entityRadius + _radius)
+			if (dist < entityRadius + _radius) {
 				moveDir += ltbl::vectorNormalize(dir) * numSubstepsInv;
+
+				_hit = true;
+			}
 		}
 	}
 
 	_position += moveDir;
+
+	_pushedOverVel = ltbl::vectorMagnitude(_reactedPosition - _position) > (1.0f + (1.0f - _stuckVelocity)) * ltbl::vectorMagnitude(_reactedPosition - _prevPosition);
 }
 
 void Marine::preRender(sf::RenderTarget &rt) {

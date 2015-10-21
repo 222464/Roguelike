@@ -68,6 +68,8 @@ void Room::update(float dt) {
 
 		if (!_entities[i]->inTransit())
 			_entities[i]->_timeSinceTransit += dt;
+
+		_entities[i]->_timeSinceTransit = std::min(_entities[i]->_timeSinceTransit, getLevel()->_maxAllowedTransitTime);
 	}
 
 	// Substeps

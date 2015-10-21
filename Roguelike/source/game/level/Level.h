@@ -66,6 +66,14 @@ public:
 		return *_cells[_currentCellX + _currentCellY * _width]._room;
 	}
 
+	int getCurrentCellX() const {
+		return _currentCellX;
+	}
+
+	int getCurrentCellY() const {
+		return _currentCellY;
+	}
+
 	int getWidth() const {
 		return _width;
 	}

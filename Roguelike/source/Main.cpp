@@ -41,7 +41,7 @@ int main() {
 
 	std::vector<std::shared_ptr<Marine>> marines;
 
-	for (int i = 0; i < 32; i++) {
+	for (int i = 0; i < 64; i++) {
 		std::shared_ptr<Marine> marine = std::make_shared<Marine>();
 
 		g.getCurrentLevel()->getCurrentRoom().add(marine);
@@ -59,8 +59,11 @@ int main() {
 
 	for (int x = 0; x < g.getCurrentLevel()->getWidth(); x++)
 		for (int y = 0; y < g.getCurrentLevel()->getHeight(); y++) {
+			if (x == g.getCurrentLevel()->getCurrentCellX() && y == g.getCurrentLevel()->getCurrentCellY())
+				continue;
+
 			if (g.getCurrentLevel()->getCell(x, y)._room != nullptr) {
-				for (int i = 0; i < 10; i++) {
+				for (int i = 0; i < 20; i++) {
 					std::shared_ptr<EnemyMarine> marine = std::make_shared<EnemyMarine>();
 
 					g.getCurrentLevel()->getCell(x, y)._room->add(marine);

@@ -41,6 +41,9 @@ private:
 	sf::Vector2f _prevPosition;
 	sf::Vector2f _position;
 	float _rotation;
+	sf::Vector2f _reactedPosition;
+
+	bool _pushedOverVel;
 
 	sf::Vector2f _target;
 	bool _attack;
@@ -63,6 +66,11 @@ private:
 	float _fireSoundTimer;
 	float _maxFireSoundTime;
 
+	float _stuckVelocity;
+	float _stuckTimer;
+	float _stuckTime;
+	float _stuckTime_transit;
+
 	bool _isSelected;
 
 	float _idleFaceDirection;
@@ -72,6 +80,7 @@ private:
 
 	bool _wantsTransit;
 
+	bool _hit;
 	bool _hitWall;
 
 public:
