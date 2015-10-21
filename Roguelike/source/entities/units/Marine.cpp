@@ -181,7 +181,9 @@ void Marine::face(float &angle, float rate, float dt) {
 void Marine::update(float dt) {
 	_isSelected = getGame()->_selection.find(this) != getGame()->_selection.end();
 
-	if (ltbl::vectorMagnitude(_target - _position) < _stats->_walkRate * dt) {
+	int portal = getRoom()->getPortal(getAABB());
+
+	if (ltbl::vectorMagnitude(_target - _position) < _stats->_walkRate * dt && portal == -1) {
 		_attack = true;
 		_target = _position;
 
@@ -202,8 +204,7 @@ void Marine::update(float dt) {
 
 		// If should transit and in transit zone, walk off screen
 		if (_wantsTransit) {
-			int portal = getRoom()->getPortal(getAABB());
-
+			
 			if (portal != -1) {
 				switch (portal) {
 				case 0:
@@ -265,14 +266,14 @@ void Marine::update(float dt) {
 		}
 		else {
 			// Walk on screen if offscreen
-			if (_position.x < _radius * 2.0f)
-				_target = _position + sf::Vector2f(10.0f, 0.0f);
-			if (_position.y < _radius * 2.0f)
-				_target = _position + sf::Vector2f(0.0f, 10.0f);
-			if (_position.x > getRoom()->getWidth() - _radius * 2.0f)
-				_target = _position + sf::Vector2f(-10.0f, 0.0f);
-			if (_position.y > getRoom()->getHeight() - _radius * 2.0f)
-				_target = _position + sf::Vector2f(0.0f, -10.0f);
+			if (_position.x < _radius * 2.0f + getRoom()->_wallRange)
+				_target = _position + sf::Vector2f(getRoom()->_wallRange + getRoom()->_portalSize, 0.0f);
+			if (_position.y < _radius * 2.0f + getRoom()->_wallRange)
+				_target = _position + sf::Vector2f(0.0f, getRoom()->_wallRange + getRoom()->_portalSize);
+			if (_position.x > getRoom()->getWidth() - _radius * 2.0f - getRoom()->_wallRange)
+				_target = _position + sf::Vector2f(-getRoom()->_wallRange - getRoom()->_portalSize, 0.0f);
+			if (_position.y > getRoom()->getHeight() - _radius * 2.0f - getRoom()->_wallRange)
+				_target = _position + sf::Vector2f(0.0f, -getRoom()->_wallRange - getRoom()->_portalSize);
 		}
 	}
 
