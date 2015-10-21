@@ -4,7 +4,7 @@
 #include "../../Game.h"
 
 Room::Room()
-	: _pLevel(nullptr), _numSubSteps(8), _portalSize(32.0f), _transitDistanceRange(16.0f), _wallRange(16.0f)
+	: _pLevel(nullptr), _numSubSteps(4), _portalSize(36.0f), _transitDistanceRange(8.0f), _wallRange(16.0f)
 {}
 
 Level* Room::getLevel() const {
@@ -267,6 +267,31 @@ int Room::getPortal(const sf::FloatRect &aabb) {
 
 	if (getCellY() < getLevel()->getHeight() - 1 && getLevel()->getCell(getCellX(), getCellY() + 1)._room != nullptr)
 		if (ltbl::rectIntersects(aabb, ltbl::rectRecenter(vertical, sf::Vector2f(center.x, _height))))
+			return 1;
+
+	return -1;
+}
+
+int Room::getPortalContains(const sf::FloatRect &aabb) {
+	sf::Vector2f center(_width * 0.5f, _height * 0.5f);
+
+	sf::FloatRect horizontal(0.0f, 0.0f, (_portalSize + _wallRange) * 2.0f, _portalSize);
+	sf::FloatRect vertical(0.0f, 0.0f, _portalSize, (_portalSize + _wallRange) * 2.0f);
+
+	if (getCellX() > 0 && getLevel()->getCell(getCellX() - 1, getCellY())._room != nullptr)
+		if (ltbl::rectContains(ltbl::rectRecenter(horizontal, sf::Vector2f(0.0f, center.y)), aabb))
+			return 2;
+
+	if (getCellX() < getLevel()->getWidth() - 1 && getLevel()->getCell(getCellX() + 1, getCellY())._room != nullptr)
+		if (ltbl::rectContains(ltbl::rectRecenter(horizontal, sf::Vector2f(_width, center.y)), aabb))
+			return 0;
+
+	if (getCellY() > 0 && getLevel()->getCell(getCellX(), getCellY() - 1)._room != nullptr)
+		if (ltbl::rectContains(ltbl::rectRecenter(vertical, sf::Vector2f(center.x, 0.0f)), aabb))
+			return 3;
+
+	if (getCellY() < getLevel()->getHeight() - 1 && getLevel()->getCell(getCellX(), getCellY() + 1)._room != nullptr)
+		if (ltbl::rectContains(ltbl::rectRecenter(vertical, sf::Vector2f(center.x, _height)), aabb))
 			return 1;
 
 	return -1;

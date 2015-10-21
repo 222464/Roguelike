@@ -204,29 +204,55 @@ void Marine::update(float dt) {
 
 		// If should transit and in transit zone, walk off screen
 		if (_wantsTransit) {
-			
-			if (portal != -1) {
-				switch (portal) {
+			_attack = false;
+
+			// If not contained by portal
+			int portalContains = getRoom()->getPortalContains(getAABB());
+
+			if (portalContains == -1) {
+				// Guide to portal, since we are stuck but on a portal tile
+				switch (portalContains) {
 				case 0:
-					_target = _position + sf::Vector2f(10.0f, 0.0f);
+					_target = sf::Vector2f(getRoom()->getWidth() - getRoom()->_wallRange, getRoom()->getHeight() * 0.5f);
 					break;
+
 				case 1:
-					_target = _position + sf::Vector2f(0.0f, 10.0f);
+					_target = sf::Vector2f(getRoom()->getWidth() * 0.5f, getRoom()->getHeight() - getRoom()->_wallRange);
 					break;
+
 				case 2:
-					_target = _position + sf::Vector2f(-10.0f, 0.0f);
+					_target = sf::Vector2f(getRoom()->_wallRange, getRoom()->getHeight() * 0.5f);
 					break;
+
 				case 3:
-					_target = _position + sf::Vector2f(0.0f, -10.0f);
+					_target = sf::Vector2f(getRoom()->getWidth() * 0.5f, getRoom()->_wallRange);
 					break;
+				}
+			}
+			else { // If not stuck, head down portal
+				if (portal != -1) {
+					switch (portal) {
+					case 0:
+						_target = _position + sf::Vector2f(getRoom()->getWidth() * 0.5f, 0.0f);
+						break;
+					case 1:
+						_target = _position + sf::Vector2f(0.0f, getRoom()->getHeight() * 0.5f);
+						break;
+					case 2:
+						_target = _position + sf::Vector2f(-getRoom()->getWidth() * 0.5f, 0.0f);
+						break;
+					case 3:
+						_target = _position + sf::Vector2f(0.0f, -getRoom()->getHeight() * 0.5f);
+						break;
+					}
 				}
 			}
 
 			// If off screen enough, perform transit
-			if (_position.x < -getRoom()->_transitDistanceRange ||
-				_position.x > getRoom()->getWidth() + getRoom()->_transitDistanceRange ||
-				_position.y < -getRoom()->_transitDistanceRange ||
-				_position.y > getRoom()->getHeight() + getRoom()->_transitDistanceRange)
+			if (_position.x < -_radius * 2.0f ||
+				_position.x > getRoom()->getWidth() + _radius * 2.0f ||
+				_position.y < -_radius * 2.0f ||
+				_position.y > getRoom()->getHeight() + _radius * 2.0f)
 			{
 				//float offset;
 
@@ -234,25 +260,25 @@ void Marine::update(float dt) {
 				case 0:
 					//offset = _position.x - getRoom()->getWidth();
 
-					setPosition(sf::Vector2f(-getRoom()->_transitDistanceRange, _position.y));
+					setPosition(sf::Vector2f(-_radius * 2.0f, _position.y));
 					
 					break;
 				case 3:
 					//offset = _position.y - getRoom()->getHeight();
 
-					setPosition(sf::Vector2f(_position.x, getRoom()->getHeight() + getRoom()->_transitDistanceRange));
+					setPosition(sf::Vector2f(_position.x, getRoom()->getHeight() + _radius * 2.0f));
 
 					break;
 				case 2:
 					//offset = -_position.x;
 
-					setPosition(sf::Vector2f(getRoom()->getWidth() + getRoom()->_transitDistanceRange, _position.y));
+					setPosition(sf::Vector2f(getRoom()->getWidth() + _radius * 2.0f, _position.y));
 
 					break;
 				case 1:
 					//offset = -_position.y;
 
-					setPosition(sf::Vector2f(_position.x, -getRoom()->_transitDistanceRange));
+					setPosition(sf::Vector2f(_position.x, -_radius * 2.0f));
 
 					break;
 				}
@@ -370,7 +396,7 @@ void Marine::update(float dt) {
 		_firingCycle = 0.0f;
 	}
 
-	if (ltbl::vectorMagnitude(_position - _prevPosition) < 0.25f * _stats->_walkRate * dt) {
+	if (ltbl::vectorMagnitude(_position - _prevPosition) < 0.125f * _stats->_walkRate * dt) {
 		// Stop walking, stuck
 		_target = _position;
 	}

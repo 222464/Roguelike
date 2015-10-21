@@ -219,4 +219,12 @@ void Level::transition(int dir) {
 
 	for (int i = 0; i < getCell(_currentCellX, _currentCellY)._room->_transitLimbo.size(); i++)
 		getCell(_currentCellX, _currentCellY)._room->_transitLimbo[i]->_timeSinceTransit = std::max(-_maxAllowedTransitTime, getCell(_currentCellX, _currentCellY)._room->_transitLimbo[i]->_timeSinceTransit - maxTime);
+
+	float minTime = 99999.0f;	
+
+	for (int i = 0; i < getCell(_currentCellX, _currentCellY)._room->_transitLimbo.size(); i++)
+		minTime = std::min(minTime, getCell(_currentCellX, _currentCellY)._room->_transitLimbo[i]->_timeSinceTransit);
+
+	for (int i = 0; i < getCell(_currentCellX, _currentCellY)._room->_transitLimbo.size(); i++)
+		getCell(_currentCellX, _currentCellY)._room->_transitLimbo[i]->_timeSinceTransit = minTime - getCell(_currentCellX, _currentCellY)._room->_transitLimbo[i]->_timeSinceTransit;
 }

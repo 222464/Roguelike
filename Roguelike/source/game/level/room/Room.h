@@ -59,6 +59,7 @@ public:
 
 	// Returns direction if on a portal, otherwise -1
 	int getPortal(const sf::FloatRect &aabb);
+	int getPortalContains(const sf::FloatRect &aabb);
 
 	bool wallCollision(sf::FloatRect &aabb);
 
