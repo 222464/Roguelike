@@ -255,8 +255,8 @@ void Room::addToTransitLimbo(const std::shared_ptr<Entity> &entity, bool addToQu
 int Room::getPortal(const sf::FloatRect &aabb) {
 	sf::Vector2f center(_width * 0.5f, _height * 0.5f);
 
-	sf::FloatRect horizontal(0.0f, 0.0f, (_portalSize + _wallRange) * 2.0f, _portalSize * 0.99f);
-	sf::FloatRect vertical(0.0f, 0.0f, _portalSize * 0.99f, (_portalSize + _wallRange) * 2.0f);
+	sf::FloatRect horizontal(0.0f, 0.0f, (_portalSize + _wallRange) * 2.0f, _portalSize * 1.01f);
+	sf::FloatRect vertical(0.0f, 0.0f, _portalSize * 1.01f, (_portalSize + _wallRange) * 2.0f);
 
 	if (getCellX() > 0 && getLevel()->getCell(getCellX() - 1, getCellY())._room != nullptr)
 		if (ltbl::rectIntersects(aabb, ltbl::rectRecenter(horizontal, sf::Vector2f(0.0f, center.y))))

@@ -219,7 +219,7 @@ void Marine::update(float dt) {
 			// If not contained by portal
 			int portalContains = getRoom()->getPortalContains(getAABB());
 
-			if (portalContains == -1 || ltbl::vectorMagnitude(_reactedPosition - _prevPosition) < 0.5f * _stats->_walkRate * dt || _hitWall) {
+			if (portalContains == -1 || (ltbl::vectorMagnitude(_reactedPosition - _prevPosition) < _stuckVelocity * _stats->_walkRate * dt) || _hitWall) {
 				// Guide to portal, since we are stuck but on a portal tile
 				switch (portalContains) {
 				case 0:
@@ -305,17 +305,6 @@ void Marine::update(float dt) {
 
 				transit(portal);
 			}
-		}
-		else {
-			// Walk on screen if offscreen
-			if (_position.x < _radius * 2.0f)
-				_target = _position + sf::Vector2f(getRoom()->_wallRange + getRoom()->_portalSize, 0.0f);
-			if (_position.y < _radius * 2.0f)
-				_target = _position + sf::Vector2f(0.0f, getRoom()->_wallRange + getRoom()->_portalSize);
-			if (_position.x > getRoom()->getWidth() - _radius * 2.0f)
-				_target = _position + sf::Vector2f(-getRoom()->_wallRange - getRoom()->_portalSize, 0.0f);
-			if (_position.y > getRoom()->getHeight() - _radius * 2.0f)
-				_target = _position + sf::Vector2f(0.0f, -getRoom()->_wallRange - getRoom()->_portalSize);
 		}
 	}
 
@@ -426,6 +415,18 @@ void Marine::update(float dt) {
 
 		// Settle feet
 		_footCycle += (0.0f - _footCycle) * 1.2f * dt;
+	}
+
+	// Walk on screen if offscreen
+	if (!_wantsTransit) {
+		if (_position.x < _radius * 2.0f + getRoom()->_wallRange)
+			_target = _position + sf::Vector2f(getRoom()->_wallRange + getRoom()->_portalSize, 0.0f);
+		if (_position.y < _radius * 2.0f + getRoom()->_wallRange)
+			_target = _position + sf::Vector2f(0.0f, getRoom()->_wallRange + getRoom()->_portalSize);
+		if (_position.x > getRoom()->getWidth() - _radius * 2.0f - getRoom()->_wallRange)
+			_target = _position + sf::Vector2f(-getRoom()->_wallRange - getRoom()->_portalSize, 0.0f);
+		if (_position.y > getRoom()->getHeight() - _radius * 2.0f - getRoom()->_wallRange)
+			_target = _position + sf::Vector2f(0.0f, -getRoom()->_wallRange - getRoom()->_portalSize);
 	}
 
 	// If not walking
