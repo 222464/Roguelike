@@ -6,3 +6,5 @@ MaxStepDist: 4
 DrunkSteps: 5
 NumBackgrounds: 1
 resources/backgrounds/background2.png
+resources/backgrounds/background2_door.png
+resources/backgrounds/background2_roof.png

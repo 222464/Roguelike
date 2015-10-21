@@ -17,6 +17,8 @@ private:
 	int _width, _height;
 
 	std::vector<std::shared_ptr<sf::Texture>> _backgroundTextures;
+	std::vector<std::shared_ptr<sf::Texture>> _doorTextures;
+	std::vector<std::shared_ptr<sf::Texture>> _roofTextures;
 
 	int _currentCellX, _currentCellY;
 
@@ -28,11 +30,15 @@ private:
 public:
 	float _transitionTime;
 
-	Level()
-		: _pGame(nullptr), _transitionTime(0.25f), _transitionDir(0)
-	{}
+	float _maxAllowedTransitTime;
 
-	void create(Game* pGame, int width, int height, int drunkSteps, int maxStepDist, const std::vector<std::shared_ptr<sf::Texture>> &backgroundTextures, std::mt19937 &generator);
+	Level();
+
+	void create(Game* pGame, int width, int height, int drunkSteps, int maxStepDist,
+		const std::vector<std::shared_ptr<sf::Texture>> &backgroundTextures,
+		const std::vector<std::shared_ptr<sf::Texture>> &doorTextures,
+		const std::vector<std::shared_ptr<sf::Texture>> &roofTextures,
+		std::mt19937 &generator);
 
 	void update(float dt);
 	
@@ -60,12 +66,12 @@ public:
 		return *_cells[_currentCellX + _currentCellY * _width]._room;
 	}
 
-	int getCurrentCellX() const {
-		return _currentCellX;
+	int getWidth() const {
+		return _width;
 	}
 
-	int getCurrentCellY() const {
-		return _currentCellY;
+	int getHeight() const {
+		return _height;
 	}
 
 	Game* getGame() const;

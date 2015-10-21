@@ -1,6 +1,7 @@
 #include "EnemyMarine.h"
 
 #include "../misc/Shell.h"
+#include "../misc/Splat.h"
 
 #include "../units/Friendly.h"
 
@@ -121,8 +122,11 @@ void EnemyMarine::split() {
 		if (pEntity != this && (pEntity->_type == 1 || pEntity->_type == 2)) {
 			sf::Vector2f dir = _position - ltbl::rectCenter(pEntity->getAABB());
 
-			if (ltbl::vectorMagnitude(dir) < _stats->_splitRadius)
-				moveDir += ltbl::vectorNormalize(dir);
+			float dist = ltbl::vectorMagnitude(dir);
+
+			if (dist < _stats->_splitRadius) {
+				moveDir += ltbl::vectorNormalize(dir) * (_stats->_splitRadius - dist) / _stats->_splitRadius;
+			}
 		}
 	}
 
@@ -312,6 +316,15 @@ void EnemyMarine::update(float dt) {
 	// Death
 	if (_hp <= 0.0f) {
 		remove();
+
+		// Spawn splat
+		std::shared_ptr<Splat> splat = std::make_shared<Splat>();
+
+		std::uniform_real_distribution<float> rotationNoise(0.0f, 360.0f);
+
+		getRoom()->add(splat, false);
+
+		splat->create(_position, _rotation + rotationNoise(getGame()->_generator), 30.0f);
 	}
 
 	_prevPosition = _position;
@@ -345,6 +358,13 @@ void EnemyMarine::subUpdate(float dt, int subStep, int numSubSteps) {
 	}
 
 	_position += moveDir;
+
+	// Walls
+	sf::FloatRect newAABB = getAABB();
+
+	if (getRoom()->wallCollision(newAABB)) {
+		setPosition(ltbl::rectCenter(newAABB));
+	}
 }
 
 void EnemyMarine::preRender(sf::RenderTarget &rt) {

@@ -1,6 +1,7 @@
 #include "Marine.h"
 
 #include "../misc/Shell.h"
+#include "../misc/Splat.h"
 
 #include "../enemies/Enemy.h"
 
@@ -39,7 +40,7 @@ Marine::Marine()
 	: _prevPosition(0.0f, 0.0f), _position(0.0f, 0.0f), _target(0.0f, 0.0f), _pTarget(nullptr), _hold(false),
 	_rotation(0.0f), _attack(false), _footCycle(0.0f), _footCycleRate(0.09f),
 	_firingCycle(0.0f), _firingCycleRate(10.0f), _currentFlash(0), _fireSoundTimer(0.0f), _maxFireSoundTime(0.05f),
-	_isSelected(false), _idleFaceDirection(0.0f), _idleFaceTime(5.0f), _lastFacedDirection(0.0f)
+	_isSelected(false), _idleFaceDirection(0.0f), _idleFaceTime(5.0f), _lastFacedDirection(0.0f), _wantsTransit(false)
 {
 	_name = "marine";
 	_type = 1;
@@ -94,12 +95,22 @@ void Marine::move(sf::Vector2f &position) {
 	_target = position;
 	_pTarget = nullptr;
 	_hold = false;
+	_wantsTransit = false;
 }
 
 void Marine::attackMove(const sf::Vector2f &position) {
 	_attack = true;
 	_target = position;
 	_hold = false;
+	_wantsTransit = false;
+}
+
+void Marine::transitMove(sf::Vector2f &position) {
+	_attack = false;
+	_target = position;
+	_pTarget = nullptr;
+	_hold = false;
+	_wantsTransit = true;
 }
 
 void Marine::split() {
@@ -121,8 +132,11 @@ void Marine::split() {
 		if (pEntity != this && (pEntity->_type == 1 || pEntity->_type == 2)) {
 			sf::Vector2f dir = _position - ltbl::rectCenter(pEntity->getAABB());
 
-			if (ltbl::vectorMagnitude(dir) < _stats->_splitRadius)
-				moveDir += ltbl::vectorNormalize(dir);
+			float dist = ltbl::vectorMagnitude(dir);
+
+			if (dist < _stats->_splitRadius) {
+				moveDir += ltbl::vectorNormalize(dir) * (_stats->_splitRadius - dist) / _stats->_splitRadius;
+			}
 		}
 	}
 
@@ -186,7 +200,80 @@ void Marine::update(float dt) {
 
 		_footCycle = std::fmod(_footCycle + _stats->_walkRate * _footCycleRate * dt, 1.0f);
 
-		quadtreeUpdate();
+		// If should transit and in transit zone, walk off screen
+		if (_wantsTransit) {
+			int portal = getRoom()->getPortal(getAABB());
+
+			if (portal != -1) {
+				switch (portal) {
+				case 0:
+					_target = _position + sf::Vector2f(10.0f, 0.0f);
+					break;
+				case 1:
+					_target = _position + sf::Vector2f(0.0f, 10.0f);
+					break;
+				case 2:
+					_target = _position + sf::Vector2f(-10.0f, 0.0f);
+					break;
+				case 3:
+					_target = _position + sf::Vector2f(0.0f, -10.0f);
+					break;
+				}
+			}
+
+			// If off screen enough, perform transit
+			if (_position.x < -getRoom()->_transitDistanceRange ||
+				_position.x > getRoom()->getWidth() + getRoom()->_transitDistanceRange ||
+				_position.y < -getRoom()->_transitDistanceRange ||
+				_position.y > getRoom()->getHeight() + getRoom()->_transitDistanceRange)
+			{
+				//float offset;
+
+				switch (portal) {
+				case 0:
+					//offset = _position.x - getRoom()->getWidth();
+
+					setPosition(sf::Vector2f(-getRoom()->_transitDistanceRange, _position.y));
+					
+					break;
+				case 3:
+					//offset = _position.y - getRoom()->getHeight();
+
+					setPosition(sf::Vector2f(_position.x, getRoom()->_transitDistanceRange));
+
+					break;
+				case 2:
+					//offset = -_position.x;
+
+					setPosition(sf::Vector2f(getRoom()->_transitDistanceRange, _position.y));
+
+					break;
+				case 1:
+					//offset = -_position.y;
+
+					setPosition(sf::Vector2f(_position.x, -getRoom()->_transitDistanceRange));
+
+					break;
+				}
+
+				_pTarget = nullptr;
+
+				_wantsTransit = false;
+
+				transit(portal);
+			}
+		}
+		else {
+			// Walk on screen if offscreen
+			if (_position.x < _radius * 2.0f)
+				_target = _position + sf::Vector2f(10.0f, 0.0f);
+			if (_position.y < _radius * 2.0f)
+				_target = _position + sf::Vector2f(0.0f, 10.0f);
+			if (_position.x > getRoom()->getWidth() - _radius * 2.0f)
+				_target = _position + sf::Vector2f(-10.0f, 0.0f);
+			if (_position.y > getRoom()->getHeight() - _radius * 2.0f)
+				_target = _position + sf::Vector2f(0.0f, -10.0f);
+		}
 	}
 
 	if (_attack && _pTarget == nullptr) {
@@ -312,7 +399,18 @@ void Marine::update(float dt) {
 	// Death
 	if (_hp <= 0.0f) {
 		remove();
+
+		// Spawn splat
+		std::shared_ptr<Splat> splat = std::make_shared<Splat>();
+
+		std::uniform_real_distribution<float> rotationNoise(0.0f, 360.0f);
+
+		getRoom()->add(splat, false);
+
+		splat->create(_position, _rotation + rotationNoise(getGame()->_generator), 30.0f);
 	}
+
+	quadtreeUpdate();
 
 	_prevPosition = _position;
 }
@@ -345,6 +443,13 @@ void Marine::subUpdate(float dt, int subStep, int numSubSteps) {
 	}
 
 	_position += moveDir;
+
+	// Walls
+	sf::FloatRect newAABB = getAABB();
+
+	if (getRoom()->wallCollision(newAABB)) {
+		setPosition(ltbl::rectCenter(newAABB));
+	}
 }
 
 void Marine::preRender(sf::RenderTarget &rt) {
@@ -422,7 +527,6 @@ void Marine::render(sf::RenderTarget &rt) {
 }
 
 sf::FloatRect Marine::getAABB() const {
-	
 	return ltbl::rectFromBounds(_position - sf::Vector2f(_radius, _radius), _position + sf::Vector2f(_radius, _radius));
 }
 

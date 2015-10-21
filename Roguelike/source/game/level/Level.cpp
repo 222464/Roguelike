@@ -5,17 +5,28 @@
 #include <assert.h>
 #include <iostream>
 
+Level::Level()
+	: _pGame(nullptr), _transitionTime(0.25f), _transitionDir(0), _maxAllowedTransitTime(5.0f)
+{}
+
 Game* Level::getGame() const {
 	return _pGame;
 }
 
-void Level::create(Game* pGame, int width, int height, int drunkSteps, int maxStepDist, const std::vector<std::shared_ptr<sf::Texture>> &backgroundTextures, std::mt19937 &generator) {
+void Level::create(Game* pGame, int width, int height, int drunkSteps, int maxStepDist,
+	const std::vector<std::shared_ptr<sf::Texture>> &backgroundTextures,
+	const std::vector<std::shared_ptr<sf::Texture>> &doorTextures,
+	const std::vector<std::shared_ptr<sf::Texture>> &roofTextures,
+	std::mt19937 &generator)
+{
 	_width = width;
 	_height = height;
 
 	_pGame = pGame;
 
 	_backgroundTextures = backgroundTextures;
+	_doorTextures = doorTextures;
+	_roofTextures = roofTextures;
 
 	_cells.resize(_width * _height);
 
@@ -37,7 +48,7 @@ void Level::create(Game* pGame, int width, int height, int drunkSteps, int maxSt
 		if (c._room == nullptr) {
 			c._room = std::make_unique<Room>();
 
-			c._room->create(this, std::vector<int>(1, cIndex), backgroundDist(generator));
+			c._room->create(this, drunkX, drunkY, backgroundTextures.front()->getSize().x, backgroundTextures.front()->getSize().y, std::vector<int>(1, cIndex), backgroundDist(generator));
 		}
 	}
 
@@ -84,7 +95,7 @@ void Level::create(Game* pGame, int width, int height, int drunkSteps, int maxSt
 			if (c._room == nullptr) {
 				c._room = std::make_unique<Room>();
 
-				c._room->create(this, std::vector<int>(1, cIndex), backgroundDist(generator));
+				c._room->create(this, drunkX, drunkY, backgroundTextures.front()->getSize().x, backgroundTextures.front()->getSize().y, std::vector<int>(1, cIndex), backgroundDist(generator));
 			}
 		}
 	}
@@ -96,8 +107,9 @@ void Level::update(float dt) {
 
 		_transitionTimer -= dt;
 	}
-	else
+	else {
 		getCurrentRoom().update(dt);
+	}
 }
 
 void Level::render(sf::RenderTarget &rt) {
@@ -142,7 +154,7 @@ void Level::render(sf::RenderTarget &rt) {
 		rt.draw(newRoomSprite);
 	}
 	else
-		getCurrentRoom().render(rt, _backgroundTextures);
+		getCurrentRoom().render(rt, _backgroundTextures, _doorTextures, _roofTextures);
 }
 
 void Level::transition(int dir) {
@@ -193,9 +205,18 @@ void Level::transition(int dir) {
 	getGame()->_transitionTexture0.clear();
 	getGame()->_transitionTexture1.clear();
 
-	oldRoom.render(getGame()->_transitionTexture0, _backgroundTextures);
-	getCurrentRoom().render(getGame()->_transitionTexture1, _backgroundTextures);
+	oldRoom.render(getGame()->_transitionTexture0, _backgroundTextures, _doorTextures, _roofTextures);
+	getCurrentRoom().render(getGame()->_transitionTexture1, _backgroundTextures, _doorTextures, _roofTextures);
 
 	getGame()->_transitionTexture0.display();
 	getGame()->_transitionTexture1.display();
+
+	// Normalize limbo times
+	float maxTime = -99999.0f;
+
+	for (int i = 0; i < getCell(_currentCellX, _currentCellY)._room->_transitLimbo.size(); i++)
+		maxTime = std::max(maxTime, getCell(_currentCellX, _currentCellY)._room->_transitLimbo[i]->_timeSinceTransit);
+
+	for (int i = 0; i < getCell(_currentCellX, _currentCellY)._room->_transitLimbo.size(); i++)
+		getCell(_currentCellX, _currentCellY)._room->_transitLimbo[i]->_timeSinceTransit = std::max(-_maxAllowedTransitTime, getCell(_currentCellX, _currentCellY)._room->_transitLimbo[i]->_timeSinceTransit - maxTime);
 }

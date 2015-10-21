@@ -15,3 +15,7 @@ Level* Entity::getLevel() const {
 Game* Entity::getGame() const {
 	return getRoom()->getLevel()->getGame();
 }
+
+void Entity::transit(int dir) {
+	_transit = dir;
+}

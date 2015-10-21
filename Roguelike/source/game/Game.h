@@ -16,6 +16,8 @@ public:
 		std::string _name;
 
 		std::vector<std::shared_ptr<sf::Texture>> _backgroundTextures;
+		std::vector<std::shared_ptr<sf::Texture>> _doorTextures;
+		std::vector<std::shared_ptr<sf::Texture>> _roofTextures;
 	};
 
 private:

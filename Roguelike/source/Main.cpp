@@ -41,28 +41,28 @@ int main() {
 
 	std::vector<std::shared_ptr<Marine>> marines;
 
-	for (int i = 0; i < 8; i++) {
+	for (int i = 0; i < 32; i++) {
 		std::shared_ptr<Marine> marine = std::make_shared<Marine>();
 
 		g.getCurrentLevel()->getCurrentRoom().add(marine);
 
 		marine->create();
 
-		std::uniform_real_distribution<float> marineDist(25.0f, 142.0f);
+		std::uniform_real_distribution<float> marineDist(16.0f, 86.0f);
 
 		marine->setPosition(sf::Vector2f(marineDist(generator), marineDist(generator)));
 
 		marines.push_back(marine);
 	}
 
-	for (int i = 0; i < 8; i++) {
+	for (int i = 0; i < 0; i++) {
 		std::shared_ptr<EnemyMarine> marine = std::make_shared<EnemyMarine>();
 
 		g.getCurrentLevel()->getCurrentRoom().add(marine);
 
 		marine->create();
 
-		std::uniform_real_distribution<float> marineDist(168.0f, 240.0f);
+		std::uniform_real_distribution<float> marineDist(160.0f, 240.0f);
 
 		marine->setPosition(sf::Vector2f(marineDist(generator), marineDist(generator)));
 	}
@@ -71,6 +71,8 @@ int main() {
 	bool prevRMBDown = false;
 	bool prevADown = false;
 	bool attack = false;
+	bool prevTDown = false;
+	bool transit = false;
 	sf::Vector2f selectionStart(0.0f, 0.0f);
 	bool selecting = false;
 	bool orderGiven = false;
@@ -133,9 +135,15 @@ int main() {
 		}
 		else if (!sf::Keyboard::isKeyPressed(sf::Keyboard::A) && prevADown)
 			orderGiven = false;
+
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::T) && !prevTDown) {
+			transit = true;
+			orderGiven = true;
+		}
+		else if (!sf::Keyboard::isKeyPressed(sf::Keyboard::T) && prevTDown)
+			orderGiven = false;
 		
-		if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && !prevLMBDown) {
-			
+		if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && !prevLMBDown) {		
 			if (attack) {
 				for (std::unordered_set<Entity*>::iterator it = g._selection.begin(); it != g._selection.end(); it++)
 					if ((*it)->_type == 1) {
@@ -143,6 +151,15 @@ int main() {
 					}
 
 				attack = false;
+				orderGiven = true;
+			}
+			else if (transit) {
+				for (std::unordered_set<Entity*>::iterator it = g._selection.begin(); it != g._selection.end(); it++)
+					if ((*it)->_type == 1) {
+						static_cast<Friendly*>(*it)->transitMove(window.mapPixelToCoords(sf::Mouse::getPosition(window)));
+					}
+
+				transit = false;
 				orderGiven = true;
 			}
 		}

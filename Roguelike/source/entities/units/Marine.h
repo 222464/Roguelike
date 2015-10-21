@@ -70,6 +70,8 @@ private:
 	float _idleFaceTime;
 	float _lastFacedDirection;
 
+	bool _wantsTransit;
+
 public:
 	static const float _radius;
 
@@ -79,6 +81,7 @@ public:
 
 	void move(sf::Vector2f &position);
 	void attackMove(const sf::Vector2f &position);
+	void transitMove(sf::Vector2f &position);
 	void split();
 	
 	void hold() {

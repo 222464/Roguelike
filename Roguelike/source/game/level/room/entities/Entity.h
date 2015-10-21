@@ -19,13 +19,17 @@ private:
 	bool _remove;
 
 public:
+	int _transit;
+
+	float _timeSinceTransit;
+
 	std::string _name;
 	int _type;
 
 	float _layer;
 
 	Entity()
-		: _pCurrentRoom(nullptr), _name("_"), _layer(0.0f), _remove(false), _type(0)
+		: _pCurrentRoom(nullptr), _name("_"), _layer(0.0f), _remove(false), _type(0), _transit(-1), _timeSinceTransit(0.0f)
 	{}
 
 	virtual ~Entity() {}
@@ -53,6 +57,16 @@ public:
 	{
 		return lhs->_layer < rhs->_layer;
 	}
+
+	bool inTransit() const {
+		return _transit != -1;
+	}
+
+	int getTransit() const {
+		return _transit;
+	}
+
+	void transit(int dir);
 
 	Room* getRoom() const;
 

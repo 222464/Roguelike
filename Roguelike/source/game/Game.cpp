@@ -49,6 +49,8 @@ bool Game::create(const sf::Vector2u &lsImageSize, const std::string &descName) 
 		fromDesc >> numBackgrounds;
 
 		_levelDescs[l]._backgroundTextures.resize(numBackgrounds);
+		_levelDescs[l]._doorTextures.resize(numBackgrounds);
+		_levelDescs[l]._roofTextures.resize(numBackgrounds);
 
 		for (int b = 0; b < numBackgrounds; b++) {
 			fromDesc >> param;
@@ -58,6 +60,22 @@ bool Game::create(const sf::Vector2u &lsImageSize, const std::string &descName) 
 			background->loadFromFile(param);
 
 			_levelDescs[l]._backgroundTextures[b] = background;
+
+			fromDesc >> param;
+
+			std::shared_ptr<sf::Texture> door = std::make_shared<sf::Texture>();
+
+			door->loadFromFile(param);
+
+			_levelDescs[l]._doorTextures[b] = door;
+
+			fromDesc >> param;
+
+			std::shared_ptr<sf::Texture> roof = std::make_shared<sf::Texture>();
+
+			roof->loadFromFile(param);
+
+			_levelDescs[l]._roofTextures[b] = roof;
 		}
 	}
 
@@ -74,7 +92,7 @@ void Game::nextLevel() {
 	// Generate first level
 	_currentLevel = std::make_unique<Level>();
 
-	_currentLevel->create(this, _levelDescs[_currentLevelIndex]._width, _levelDescs[_currentLevelIndex]._height, _levelDescs[_currentLevelIndex]._drunkSteps, _levelDescs[_currentLevelIndex]._maxStepDist, _levelDescs[_currentLevelIndex]._backgroundTextures, _generator);
+	_currentLevel->create(this, _levelDescs[_currentLevelIndex]._width, _levelDescs[_currentLevelIndex]._height, _levelDescs[_currentLevelIndex]._drunkSteps, _levelDescs[_currentLevelIndex]._maxStepDist, _levelDescs[_currentLevelIndex]._backgroundTextures, _levelDescs[_currentLevelIndex]._doorTextures, _levelDescs[_currentLevelIndex]._roofTextures, _generator);
 }
 
 void Game::update(float dt) {

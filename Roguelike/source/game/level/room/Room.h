@@ -11,6 +11,8 @@ private:
 	std::vector<std::shared_ptr<Entity>> _entities;
 	std::vector<std::shared_ptr<Entity>> _addedEntitiesBuffer;
 	std::vector<bool> _addedEntitiesQuadtreeStatusBuffer;
+	std::vector<std::shared_ptr<Entity>> _transitLimbo;
+	std::vector<bool> _transitLimboEntitiesQuadtreeStatusBuffer;
 
 	ltbl::DynamicQuadtree _quadtree;
 
@@ -18,20 +20,32 @@ private:
 
 	int _background;
 
+	int _cellX, _cellY;
+
+	int _width, _height;
+
 public:
 	int _numSubSteps;
 
-	Room()
-		: _pLevel(nullptr), _numSubSteps(8)
-	{}
+	float _portalSize;
 
-	void create(Level* pLevel, const std::vector<int> &cellIndices, int background);
+	float _transitDistanceRange;
+
+	float _wallRange;
+
+	Room();
+
+	void create(Level* pLevel, int cellX, int cellY, int width, int height, const std::vector<int> &cellIndices, int background);
 
 	void update(float dt);
 
-	void render(sf::RenderTarget &rt, const std::vector<std::shared_ptr<sf::Texture>> &backgrounds);
+	void render(sf::RenderTarget &rt,
+		const std::vector<std::shared_ptr<sf::Texture>> &backgrounds,
+		const std::vector<std::shared_ptr<sf::Texture>> &doors,
+		const std::vector<std::shared_ptr<sf::Texture>> &roofs);
 
 	void add(const std::shared_ptr<Entity> &entity, bool addToQuadtree = true);
+	void addToTransitLimbo(const std::shared_ptr<Entity> &entity, bool addToQuadtree = true);
 
 	ltbl::DynamicQuadtree &getQuadtree() {
 		return _quadtree;
@@ -41,9 +55,30 @@ public:
 		return _entities;
 	}
 
+	// Returns direction if on a portal, otherwise -1
+	int getPortal(const sf::FloatRect &aabb);
+
+	bool wallCollision(sf::FloatRect &aabb);
+
 	Level* getLevel() const;
 
 	Game* getGame() const;
+
+	int getWidth() const {
+		return _width;
+	}
+
+	int getHeight() const {
+		return _height;
+	}
+
+	int getCellX() const {
+		return _cellX;
+	}
+
+	int getCellY() const {
+		return _cellY;
+	}
 
 	friend class Level;
 };
