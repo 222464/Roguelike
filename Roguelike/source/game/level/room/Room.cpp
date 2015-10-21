@@ -60,7 +60,11 @@ void Room::update(float dt) {
 
 	for (int i = 0; i < _entities.size(); i++) {
 		_entities[i]->removeDeadReferences();
+		
 		_entities[i]->update(dt);
+
+		if (_entities[i]->_remove)
+			_entities[i]->quadtreeRemove();
 
 		if (!_entities[i]->inTransit())
 			_entities[i]->_timeSinceTransit += dt;
@@ -87,11 +91,10 @@ void Room::update(float dt) {
 			_entities[i]->removeDeadReferences();
 
 			died.push_back(_entities[i]);
+
+			_entities[i]->quadtreeRemove();
 		}
 	}
-
-	for (int i = 0; i < died.size(); i++)
-		died[i]->quadtreeRemove();
 
 	std::sort(newEntities.begin(), newEntities.end(), Entity::compareLayers);
 

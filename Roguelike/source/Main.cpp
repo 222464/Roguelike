@@ -48,7 +48,7 @@ int main() {
 
 		marine->create();
 
-		std::uniform_real_distribution<float> marineDist(16.0f, 86.0f);
+		std::uniform_real_distribution<float> marineDist(128.0f - 40.0f, 128.0 + 40.0f);
 
 		marine->setPosition(sf::Vector2f(marineDist(generator), marineDist(generator)));
 
@@ -57,19 +57,24 @@ int main() {
 		marines.push_back(marine);
 	}
 
-	for (int i = 0; i < 0; i++) {
-		std::shared_ptr<EnemyMarine> marine = std::make_shared<EnemyMarine>();
+	for (int x = 0; x < g.getCurrentLevel()->getWidth(); x++)
+		for (int y = 0; y < g.getCurrentLevel()->getHeight(); y++) {
+			if (g.getCurrentLevel()->getCell(x, y)._room != nullptr) {
+				for (int i = 0; i < 10; i++) {
+					std::shared_ptr<EnemyMarine> marine = std::make_shared<EnemyMarine>();
 
-		g.getCurrentLevel()->getCurrentRoom().add(marine);
+					g.getCurrentLevel()->getCell(x, y)._room->add(marine);
 
-		marine->create();
+					marine->create();
 
-		std::uniform_real_distribution<float> marineDist(160.0f, 240.0f);
+					std::uniform_real_distribution<float> marineDist(128.0f - 40.0f, 128.0 + 40.0f);
 
-		marine->setPosition(sf::Vector2f(marineDist(generator), marineDist(generator)));
+					marine->setPosition(sf::Vector2f(marineDist(generator), marineDist(generator)));
 
-		marine->stop();
-	}
+					marine->stop();
+				}
+			}
+		}
 
 	bool prevLMBDown = false;
 	bool prevRMBDown = false;

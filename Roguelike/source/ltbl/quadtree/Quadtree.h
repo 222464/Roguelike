@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ltbl/Quadtree/QuadtreeNode.h>
+#include <ltbl/quadtree/QuadtreeNode.h>
 
 #include <memory>
 
@@ -50,6 +50,7 @@ namespace ltbl {
 		void queryPoint(std::vector<QuadtreeOccupant*> &result, const sf::Vector2f &p);
 		void queryShape(std::vector<QuadtreeOccupant*> &result, const sf::ConvexShape &shape);
 
+		friend class QuadtreeOccupant;
 		friend class QuadtreeNode;
 		friend class SceneObject;
 	};
