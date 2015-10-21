@@ -41,7 +41,7 @@ Marine::Marine()
 	_rotation(0.0f), _attack(false), _footCycle(0.0f), _footCycleRate(0.09f),
 	_firingCycle(0.0f), _firingCycleRate(10.0f), _currentFlash(0), _fireSoundTimer(0.0f), _maxFireSoundTime(0.05f),
 	_isSelected(false), _idleFaceDirection(0.0f), _idleFaceTime(5.0f), _lastFacedDirection(0.0f), _wantsTransit(false),
-	_hit(false), _hitWall(false), _stuckTimer(0.0f), _stuckTime(0.2f), _stuckTime_transit(8.0f), _stuckVelocity(0.125f)
+	_hit(false), _hitWall(false), _stuckTimer(0.0f), _stuckTime(0.5f), _stuckTime_transit(8.0f), _stuckVelocity(0.125f)
 {
 	_name = "marine";
 	_type = 1;
@@ -219,7 +219,7 @@ void Marine::update(float dt) {
 			// If not contained by portal
 			int portalContains = getRoom()->getPortalContains(getAABB());
 
-			if (portalContains == -1 || ltbl::vectorMagnitude(_position - _prevPosition) < _stuckVelocity * _stats->_walkRate * dt) {
+			if (portalContains == -1 || ltbl::vectorMagnitude(_reactedPosition - _prevPosition) < 0.5f * _stats->_walkRate * dt || _hitWall) {
 				// Guide to portal, since we are stuck but on a portal tile
 				switch (portalContains) {
 				case 0:

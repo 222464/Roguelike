@@ -4,7 +4,7 @@
 #include "../../Game.h"
 
 Room::Room()
-	: _pLevel(nullptr), _numSubSteps(4), _portalSize(36.0f), _transitDistanceRange(8.0f), _wallRange(16.0f)
+	: _pLevel(nullptr), _numSubSteps(8), _portalSize(36.0f), _transitDistanceRange(8.0f), _wallRange(16.0f)
 {}
 
 Level* Room::getLevel() const {
@@ -255,8 +255,8 @@ void Room::addToTransitLimbo(const std::shared_ptr<Entity> &entity, bool addToQu
 int Room::getPortal(const sf::FloatRect &aabb) {
 	sf::Vector2f center(_width * 0.5f, _height * 0.5f);
 
-	sf::FloatRect horizontal(0.0f, 0.0f, (_portalSize + _wallRange) * 2.0f, _portalSize);
-	sf::FloatRect vertical(0.0f, 0.0f, _portalSize, (_portalSize + _wallRange) * 2.0f);
+	sf::FloatRect horizontal(0.0f, 0.0f, (_portalSize + _wallRange) * 2.0f, _portalSize * 0.99f);
+	sf::FloatRect vertical(0.0f, 0.0f, _portalSize * 0.99f, (_portalSize + _wallRange) * 2.0f);
 
 	if (getCellX() > 0 && getLevel()->getCell(getCellX() - 1, getCellY())._room != nullptr)
 		if (ltbl::rectIntersects(aabb, ltbl::rectRecenter(horizontal, sf::Vector2f(0.0f, center.y))))
@@ -280,8 +280,8 @@ int Room::getPortal(const sf::FloatRect &aabb) {
 int Room::getPortalContains(const sf::FloatRect &aabb) {
 	sf::Vector2f center(_width * 0.5f, _height * 0.5f);
 
-	sf::FloatRect horizontal(0.0f, 0.0f, (_portalSize + _wallRange) * 2.0f, _portalSize);
-	sf::FloatRect vertical(0.0f, 0.0f, _portalSize, (_portalSize + _wallRange) * 2.0f);
+	sf::FloatRect horizontal(0.0f, 0.0f, (_portalSize + _wallRange) * 2.0f, _portalSize * 0.99f);
+	sf::FloatRect vertical(0.0f, 0.0f, _portalSize * 0.99f, (_portalSize + _wallRange) * 2.0f);
 
 	if (getCellX() > 0 && getLevel()->getCell(getCellX() - 1, getCellY())._room != nullptr)
 		if (ltbl::rectContains(ltbl::rectRecenter(horizontal, sf::Vector2f(0.0f, center.y)), aabb))
