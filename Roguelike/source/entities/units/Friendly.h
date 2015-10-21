@@ -18,9 +18,11 @@ public:
 	virtual void move(sf::Vector2f &position) {}
 	virtual void attackMove(const sf::Vector2f &position) {}
 	virtual void transitMove(sf::Vector2f &position) {}
+
 	virtual void split() {}
 
 	virtual void hold() {}
+	virtual void stop() {}
 
 	virtual void setPosition(const sf::Vector2f &position) {}
 

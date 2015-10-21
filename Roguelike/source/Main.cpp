@@ -52,6 +52,8 @@ int main() {
 
 		marine->setPosition(sf::Vector2f(marineDist(generator), marineDist(generator)));
 
+		marine->stop();
+
 		marines.push_back(marine);
 	}
 
@@ -65,6 +67,8 @@ int main() {
 		std::uniform_real_distribution<float> marineDist(160.0f, 240.0f);
 
 		marine->setPosition(sf::Vector2f(marineDist(generator), marineDist(generator)));
+
+		marine->stop();
 	}
 
 	bool prevLMBDown = false;

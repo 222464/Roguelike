@@ -23,6 +23,7 @@ public:
 	virtual void split() {}
 
 	virtual void hold() {}
+	virtual void stop() {}
 
 	virtual void setPosition(const sf::Vector2f &position) {}
 

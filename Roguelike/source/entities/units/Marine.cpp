@@ -40,7 +40,8 @@ Marine::Marine()
 	: _prevPosition(0.0f, 0.0f), _position(0.0f, 0.0f), _target(0.0f, 0.0f), _pTarget(nullptr), _hold(false),
 	_rotation(0.0f), _attack(false), _footCycle(0.0f), _footCycleRate(0.09f),
 	_firingCycle(0.0f), _firingCycleRate(10.0f), _currentFlash(0), _fireSoundTimer(0.0f), _maxFireSoundTime(0.05f),
-	_isSelected(false), _idleFaceDirection(0.0f), _idleFaceTime(5.0f), _lastFacedDirection(0.0f), _wantsTransit(false)
+	_isSelected(false), _idleFaceDirection(0.0f), _idleFaceTime(5.0f), _lastFacedDirection(0.0f), _wantsTransit(false),
+	_hitWall(false)
 {
 	_name = "marine";
 	_type = 1;
@@ -83,7 +84,6 @@ void Marine::create() {
 
 void Marine::setPosition(const sf::Vector2f &position) {
 	_position = position;
-	_target = position;
 }
 
 void Marine::setRotation(float rotation) {
@@ -183,7 +183,7 @@ void Marine::update(float dt) {
 
 	int portal = getRoom()->getPortal(getAABB());
 
-	if (ltbl::vectorMagnitude(_target - _position) < _stats->_walkRate * dt && portal == -1) {
+	if (!_hitWall && portal == -1 && ltbl::vectorMagnitude(_target - _position) < 0.95f * _stats->_walkRate * dt) {
 		_attack = true;
 		_target = _position;
 
@@ -292,13 +292,13 @@ void Marine::update(float dt) {
 		}
 		else {
 			// Walk on screen if offscreen
-			if (_position.x < _radius * 2.0f + getRoom()->_wallRange)
+			if (_position.x < _radius * 2.0f)
 				_target = _position + sf::Vector2f(getRoom()->_wallRange + getRoom()->_portalSize, 0.0f);
-			if (_position.y < _radius * 2.0f + getRoom()->_wallRange)
+			if (_position.y < _radius * 2.0f)
 				_target = _position + sf::Vector2f(0.0f, getRoom()->_wallRange + getRoom()->_portalSize);
-			if (_position.x > getRoom()->getWidth() - _radius * 2.0f - getRoom()->_wallRange)
+			if (_position.x > getRoom()->getWidth() - _radius * 2.0f)
 				_target = _position + sf::Vector2f(-getRoom()->_wallRange - getRoom()->_portalSize, 0.0f);
-			if (_position.y > getRoom()->getHeight() - _radius * 2.0f - getRoom()->_wallRange)
+			if (_position.y > getRoom()->getHeight() - _radius * 2.0f)
 				_target = _position + sf::Vector2f(0.0f, -getRoom()->_wallRange - getRoom()->_portalSize);
 		}
 	}
@@ -396,7 +396,7 @@ void Marine::update(float dt) {
 		_firingCycle = 0.0f;
 	}
 
-	if (ltbl::vectorMagnitude(_position - _prevPosition) < 0.125f * _stats->_walkRate * dt) {
+	if (!_hitWall && portal == -1 && ltbl::vectorMagnitude(_position - _prevPosition) < 0.25f * _stats->_walkRate * dt) {
 		// Stop walking, stuck
 		_target = _position;
 	}
@@ -437,6 +437,8 @@ void Marine::update(float dt) {
 		splat->create(_position, _rotation + rotationNoise(getGame()->_generator), 30.0f);
 	}
 
+	_hitWall = false;
+
 	quadtreeUpdate();
 
 	_prevPosition = _position;
@@ -444,6 +446,14 @@ void Marine::update(float dt) {
 
 void Marine::subUpdate(float dt, int subStep, int numSubSteps) {
 	float numSubstepsInv = 1.0f / numSubSteps;
+
+	// Walls
+	sf::FloatRect newAABB = getAABB();
+
+	if (getRoom()->wallCollision(newAABB)) {
+		setPosition(ltbl::rectCenter(newAABB));
+		_hitWall = true;
+	}
 
 	// Accumulate pushes
 	std::vector<QuadtreeOccupant*> occupants;
@@ -470,13 +480,6 @@ void Marine::subUpdate(float dt, int subStep, int numSubSteps) {
 	}
 
 	_position += moveDir;
-
-	// Walls
-	sf::FloatRect newAABB = getAABB();
-
-	if (getRoom()->wallCollision(newAABB)) {
-		setPosition(ltbl::rectCenter(newAABB));
-	}
 }
 
 void Marine::preRender(sf::RenderTarget &rt) {

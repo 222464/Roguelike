@@ -72,6 +72,8 @@ private:
 
 	bool _wantsTransit;
 
+	bool _hitWall;
+
 public:
 	static const float _radius;
 
@@ -80,6 +82,11 @@ public:
 	void create();
 
 	void move(sf::Vector2f &position);
+
+	void stop() {
+		_target = _position;
+	}
+
 	void attackMove(const sf::Vector2f &position);
 	void transitMove(sf::Vector2f &position);
 	void split();

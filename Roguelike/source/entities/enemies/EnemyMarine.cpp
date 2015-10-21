@@ -40,7 +40,7 @@ EnemyMarine::EnemyMarine()
 	: _prevPosition(0.0f, 0.0f), _position(0.0f, 0.0f), _target(0.0f, 0.0f), _pTarget(nullptr), _hold(false),
 	_rotation(0.0f), _attack(false), _footCycle(0.0f), _footCycleRate(0.09f),
 	_firingCycle(0.0f), _firingCycleRate(10.0f), _currentFlash(0), _fireSoundTimer(0.0f), _maxFireSoundTime(0.05f),
-	_isSelected(false), _idleFaceDirection(0.0f), _idleFaceTime(5.0f), _lastFacedDirection(0.0f)
+	_isSelected(false), _idleFaceDirection(0.0f), _idleFaceTime(5.0f), _lastFacedDirection(0.0f), _hitWall(false)
 {
 	_name = "enemy_marine";
 	_type = 2;
@@ -83,7 +83,6 @@ void EnemyMarine::create() {
 
 void EnemyMarine::setPosition(const sf::Vector2f &position) {
 	_position = position;
-	_target = position;
 }
 
 void EnemyMarine::setRotation(float rotation) {
@@ -171,7 +170,7 @@ void EnemyMarine::face(float &angle, float rate, float dt) {
 void EnemyMarine::update(float dt) {
 	_isSelected = getGame()->_selection.find(this) != getGame()->_selection.end();
 
-	if (ltbl::vectorMagnitude(_target - _position) < _stats->_walkRate * dt) {
+	if (!_hitWall && ltbl::vectorMagnitude(_target - _position) < 0.95f * _stats->_walkRate * dt) {
 		_attack = true;
 		_target = _position;
 
@@ -286,7 +285,7 @@ void EnemyMarine::update(float dt) {
 		_firingCycle = 0.0f;
 	}
 
-	if (ltbl::vectorMagnitude(_position - _prevPosition) < 0.25f * _stats->_walkRate * dt) {
+	if (!_hitWall && ltbl::vectorMagnitude(_position - _prevPosition) < 0.25f * _stats->_walkRate * dt) {
 		// Stop walking, stuck
 		_target = _position;
 	}
@@ -327,11 +326,21 @@ void EnemyMarine::update(float dt) {
 		splat->create(_position, _rotation + rotationNoise(getGame()->_generator), 30.0f);
 	}
 
+	_hitWall = false;
+
 	_prevPosition = _position;
 }
 
 void EnemyMarine::subUpdate(float dt, int subStep, int numSubSteps) {
 	float numSubstepsInv = 1.0f / numSubSteps;
+
+	// Walls
+	sf::FloatRect newAABB = getAABB();
+
+	if (getRoom()->wallCollision(newAABB)) {
+		setPosition(ltbl::rectCenter(newAABB));
+		_hitWall = true;
+	}
 
 	// Accumulate pushes
 	std::vector<QuadtreeOccupant*> occupants;
@@ -358,13 +367,6 @@ void EnemyMarine::subUpdate(float dt, int subStep, int numSubSteps) {
 	}
 
 	_position += moveDir;
-
-	// Walls
-	sf::FloatRect newAABB = getAABB();
-
-	if (getRoom()->wallCollision(newAABB)) {
-		setPosition(ltbl::rectCenter(newAABB));
-	}
 }
 
 void EnemyMarine::preRender(sf::RenderTarget &rt) {

@@ -309,11 +309,11 @@ bool Room::wallCollision(sf::FloatRect &aabb) {
 		// Close off wall completely
 		useWalls[2].height = 10000.0f;
 
-	if (getCellY() > 0 && getLevel()->getCell(getCellX(), getCellY() - 1)._room != nullptr)
+	if (getCellY() > 0 && getLevel()->getCell(getCellX(), getCellY() - 1)._room == nullptr)
 		// Close off wall completely
 		useWalls[3].width = 10000.0f;
 
-	if (getCellY() < getLevel()->getHeight() - 1 && getLevel()->getCell(getCellX(), getCellY() + 1)._room != nullptr)
+	if (getCellY() < getLevel()->getHeight() - 1 && getLevel()->getCell(getCellX(), getCellY() + 1)._room == nullptr)
 		// Close off wall completely
 		useWalls[5].width = 10000.0f;
 
@@ -327,15 +327,15 @@ bool Room::wallCollision(sf::FloatRect &aabb) {
 
 			if (intersection.width > intersection.height) {	
 				if (intersectionCenter.y > aabbCenter.y)
-					aabb.top += -intersection.height;
+					aabb.top += -intersection.height - 0.01f;
 				else
-					aabb.top += intersection.height;
+					aabb.top += intersection.height + 0.01f;
 			}
 			else {
 				if (intersectionCenter.x > aabbCenter.x)
-					aabb.left += -intersection.width;
+					aabb.left += -intersection.width - 0.01f;
 				else
-					aabb.left += intersection.width;
+					aabb.left += intersection.width + 0.01f;
 			}
 
 			return true;
