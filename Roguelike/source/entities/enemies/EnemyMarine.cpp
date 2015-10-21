@@ -1,14 +1,14 @@
-#include "Marine.h"
+#include "EnemyMarine.h"
 
 #include "../misc/Shell.h"
 
-#include "../enemies/Enemy.h"
+#include "../units/Friendly.h"
 
 #include <game/Game.h>
 
-const float Marine::_radius = 4.0f;
+const float EnemyMarine::_radius = 4.0f;
 
-Marine::Stats::Stats()
+EnemyMarine::Stats::Stats()
 	: _spinRate(720.0f), _idleSpinRate(60.0f),
 	_walkRate(30.0f),
 	_range(64.0f),
@@ -16,59 +16,59 @@ Marine::Stats::Stats()
 	_damage(20.0f)
 {}
 
-void Marine::Assets::load() {
-	_marineBodyWalk.loadFromFile("resources/units/marine/marine_body_walk.png");
-	_marineBodyNoFire.loadFromFile("resources/units/marine/marine_body_nofire.png");
+void EnemyMarine::Assets::load() {
+	_marineBodyWalk.loadFromFile("resources/enemies/marine/marine_body_walk.png");
+	_marineBodyNoFire.loadFromFile("resources/enemies/marine/marine_body_nofire.png");
 
 	_marineBodyFlashes.resize(3);
 
-	_marineBodyFlashes[0].loadFromFile("resources/units/marine/marine_body_fire_flash1.png");
-	_marineBodyFlashes[1].loadFromFile("resources/units/marine/marine_body_fire_flash2.png");
-	_marineBodyFlashes[2].loadFromFile("resources/units/marine/marine_body_fire_flash3.png");
+	_marineBodyFlashes[0].loadFromFile("resources/enemies/marine/marine_body_fire_flash1.png");
+	_marineBodyFlashes[1].loadFromFile("resources/enemies/marine/marine_body_fire_flash2.png");
+	_marineBodyFlashes[2].loadFromFile("resources/enemies/marine/marine_body_fire_flash3.png");
 
-	_marineFoot.loadFromFile("resources/units/marine/marine_foot.png");
+	_marineFoot.loadFromFile("resources/enemies/marine/marine_foot.png");
 
-	_marineShadow.loadFromFile("resources/units/marine/marine_shadow.png");
+	_marineShadow.loadFromFile("resources/enemies/marine/marine_shadow.png");
 
-	_marineSelected.loadFromFile("resources/units/marine/marine_selected.png");
+	_marineSelected.loadFromFile("resources/enemies/marine/marine_selected.png");
 
 	_shootSound.loadFromFile("resources/sounds/weapons/mg.wav");
 }
 
-Marine::Marine()
+EnemyMarine::EnemyMarine()
 	: _prevPosition(0.0f, 0.0f), _position(0.0f, 0.0f), _target(0.0f, 0.0f), _pTarget(nullptr), _hold(false),
 	_rotation(0.0f), _attack(false), _footCycle(0.0f), _footCycleRate(0.09f),
 	_firingCycle(0.0f), _firingCycleRate(10.0f), _currentFlash(0), _fireSoundTimer(0.0f), _maxFireSoundTime(0.05f),
 	_isSelected(false), _idleFaceDirection(0.0f), _idleFaceTime(5.0f), _lastFacedDirection(0.0f)
 {
-	_name = "marine";
-	_type = 1;
+	_name = "enemy_marine";
+	_type = 2;
 
 	_idleFaceTimer = _idleFaceTime;
 }
 
-void Marine::create() {
-	if (!getGame()->_resources.exists("marine_assets")) {
+void EnemyMarine::create() {
+	if (!getGame()->_resources.exists("enemy_marine_assets")) {
 		Ptr<Assets> assets = std::make_shared<Assets>();
 
 		assets->load();
 
 		_assets = assets;
 
-		getGame()->_resources.insertPtr("marine_assets", assets);
+		getGame()->_resources.insertPtr("enemy_marine_assets", assets);
 	}
 	else
-		_assets = getGame()->_resources.getPtr<Assets>("marine_assets");
+		_assets = getGame()->_resources.getPtr<Assets>("enemy_marine_assets");
 
-	if (!getGame()->_resources.exists("marine_stats")) {
+	if (!getGame()->_resources.exists("enemy_marine_stats")) {
 		Ptr<Stats> stats = std::make_shared<Stats>();
 
 		_stats = stats;
 
-		getGame()->_resources.insertPtr("marine_stats", stats);
+		getGame()->_resources.insertPtr("enemy_marine_stats", stats);
 	}
 	else
-		_stats = getGame()->_resources.getPtr<Stats>("marine_stats");
+		_stats = getGame()->_resources.getPtr<Stats>("enemy_marine_stats");
 
 	_firingSound.setBuffer(_assets->_shootSound);
 
@@ -80,29 +80,29 @@ void Marine::create() {
 	_layer = layerDist(getGame()->_generator);
 }
 
-void Marine::setPosition(const sf::Vector2f &position) {
+void EnemyMarine::setPosition(const sf::Vector2f &position) {
 	_position = position;
 	_target = position;
 }
 
-void Marine::setRotation(float rotation) {
+void EnemyMarine::setRotation(float rotation) {
 	_rotation = rotation;
 }
 
-void Marine::move(sf::Vector2f &position) {
+void EnemyMarine::move(sf::Vector2f &position) {
 	_attack = false;
 	_target = position;
 	_pTarget = nullptr;
 	_hold = false;
 }
 
-void Marine::attackMove(const sf::Vector2f &position) {
+void EnemyMarine::attackMove(const sf::Vector2f &position) {
 	_attack = true;
 	_target = position;
 	_hold = false;
 }
 
-void Marine::split() {
+void EnemyMarine::split() {
 	_attack = false;
 	_target = _position;
 
@@ -133,7 +133,7 @@ void Marine::split() {
 	_hold = false;
 }
 
-void Marine::face(float &angle, float rate, float dt) {
+void EnemyMarine::face(float &angle, float rate, float dt) {
 	if (angle < 0.0f)
 		angle += 360.0f;
 
@@ -164,7 +164,7 @@ void Marine::face(float &angle, float rate, float dt) {
 	_lastFacedDirection = _rotation;
 }
 
-void Marine::update(float dt) {
+void EnemyMarine::update(float dt) {
 	_isSelected = getGame()->_selection.find(this) != getGame()->_selection.end();
 
 	if (ltbl::vectorMagnitude(_target - _position) < _stats->_walkRate * dt) {
@@ -181,7 +181,7 @@ void Marine::update(float dt) {
 
 		// Rotate to target rotation
 		float angle = std::atan2(dir.y, dir.x) * 180.0f / ltbl::_pi + 90.0f;
-		
+
 		face(angle, dt, _stats->_spinRate);
 
 		_footCycle = std::fmod(_footCycle + _stats->_walkRate * _footCycleRate * dt, 1.0f);
@@ -202,8 +202,8 @@ void Marine::update(float dt) {
 		for (int i = 0; i < occupants.size(); i++) {
 			Entity* pEntity = static_cast<Entity*>(occupants[i]);
 
-			if (pEntity->_type == 2) {
-				Enemy* pEnemy = static_cast<Enemy*>(occupants[i]);
+			if (pEntity->_type == 1) {
+				Friendly* pEnemy = static_cast<Friendly*>(occupants[i]);
 
 				float dist = ltbl::vectorMagnitude(pEnemy->getPosition() - _position);
 
@@ -243,7 +243,7 @@ void Marine::update(float dt) {
 
 				std::uniform_real_distribution<float> positionNoise(-15.0f, 15.0f);
 				std::uniform_real_distribution<float> rotationNoise(-10.0f, 10.0f);
-				
+
 				getRoom()->add(shell, false);
 
 				shell->create(perpendicular * 20.0f + sf::Vector2f(positionNoise(getGame()->_generator), positionNoise(getGame()->_generator)), _position + perpendicular * 2.0f, rotationNoise(getGame()->_generator), _rotation, 1.0f, 2.0f);
@@ -255,7 +255,7 @@ void Marine::update(float dt) {
 
 			// Play firing sound
 			if (_firingSound.getStatus() != sf::Sound::Playing) {
-				if (_fireSoundTimer <= 0.0f) {	
+				if (_fireSoundTimer <= 0.0f) {
 					// Randomize pitch and volume a bit
 					std::uniform_real_distribution<float> pitchDist(0.8f, 1.0f);
 					std::uniform_real_distribution<float> volumeDist(10.0f, 20.0f);
@@ -317,7 +317,7 @@ void Marine::update(float dt) {
 	_prevPosition = _position;
 }
 
-void Marine::subUpdate(float dt, int subStep, int numSubSteps) {
+void EnemyMarine::subUpdate(float dt, int subStep, int numSubSteps) {
 	float numSubstepsInv = 1.0f / numSubSteps;
 
 	// Accumulate pushes
@@ -347,7 +347,7 @@ void Marine::subUpdate(float dt, int subStep, int numSubSteps) {
 	_position += moveDir;
 }
 
-void Marine::preRender(sf::RenderTarget &rt) {
+void EnemyMarine::preRender(sf::RenderTarget &rt) {
 	if (_isSelected) {
 		sf::Sprite selectedSprite;
 		selectedSprite.setTexture(_assets->_marineSelected);
@@ -360,7 +360,7 @@ void Marine::preRender(sf::RenderTarget &rt) {
 	}
 }
 
-void Marine::render(sf::RenderTarget &rt) {
+void EnemyMarine::render(sf::RenderTarget &rt) {
 	sf::Sprite shadowSprite;
 	shadowSprite.setTexture(_assets->_marineShadow);
 
@@ -421,12 +421,12 @@ void Marine::render(sf::RenderTarget &rt) {
 	rt.draw(bodySprite);
 }
 
-sf::FloatRect Marine::getAABB() const {
-	
+sf::FloatRect EnemyMarine::getAABB() const {
+
 	return ltbl::rectFromBounds(_position - sf::Vector2f(_radius, _radius), _position + sf::Vector2f(_radius, _radius));
 }
 
-void Marine::removeDeadReferences() {
+void EnemyMarine::removeDeadReferences() {
 	if (_pTarget != nullptr) {
 		if (_pTarget->removed())
 			_pTarget = nullptr;

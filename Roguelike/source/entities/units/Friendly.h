@@ -6,10 +6,13 @@ class Friendly : public Entity {
 private:
 
 public:
+	float _hp;
+
 	Friendly()
 	{
 		_name = "friendly";
 		_type = 1;
+		_hp = 100.0f;
 	}
 
 	virtual void move(sf::Vector2f &position) {}

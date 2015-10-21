@@ -3,7 +3,7 @@
 #include <game/Game.h>
 
 #include <entities/units/Marine.h>
-#include <entities/enemies/Enemy.h>
+#include <entities/enemies/EnemyMarine.h>
 
 #include <time.h>
 #include <iostream>
@@ -41,27 +41,31 @@ int main() {
 
 	std::vector<std::shared_ptr<Marine>> marines;
 
-	for (int i = 0; i < 30; i++) {
+	for (int i = 0; i < 8; i++) {
 		std::shared_ptr<Marine> marine = std::make_shared<Marine>();
 
 		g.getCurrentLevel()->getCurrentRoom().add(marine);
 
 		marine->create();
 
-		std::uniform_real_distribution<float> marineDist(64.0f, 192.0f);
+		std::uniform_real_distribution<float> marineDist(25.0f, 142.0f);
 
 		marine->setPosition(sf::Vector2f(marineDist(generator), marineDist(generator)));
 
 		marines.push_back(marine);
 	}
 
-	std::shared_ptr<Enemy> enemy = std::make_shared<Enemy>();
+	for (int i = 0; i < 8; i++) {
+		std::shared_ptr<EnemyMarine> marine = std::make_shared<EnemyMarine>();
 
-	g.getCurrentLevel()->getCurrentRoom().add(enemy);
+		g.getCurrentLevel()->getCurrentRoom().add(marine);
 
-	enemy->create();
+		marine->create();
 
-	enemy->setPosition(sf::Vector2f(180.0f, 180.0f));
+		std::uniform_real_distribution<float> marineDist(168.0f, 240.0f);
+
+		marine->setPosition(sf::Vector2f(marineDist(generator), marineDist(generator)));
+	}
 
 	bool prevLMBDown = false;
 	bool prevRMBDown = false;
@@ -151,7 +155,7 @@ int main() {
 					// Make selection
 					sf::Vector2f selectionEnd = window.mapPixelToCoords(sf::Mouse::getPosition(window));
 
-					g.select(ltbl::rectFromBounds(selectionStart, selectionEnd));
+					g.select(ltbl::rectFromBounds(selectionStart - sf::Vector2f(0.01f, 0.01f), selectionEnd + sf::Vector2f(0.01f, 0.01f)));
 
 					selecting = false;
 				}

@@ -9,7 +9,8 @@ class Game;
 class Room {
 private:
 	std::vector<std::shared_ptr<Entity>> _entities;
-	std::vector<std::shared_ptr<Entity>> _newEntities;
+	std::vector<std::shared_ptr<Entity>> _addedEntitiesBuffer;
+	std::vector<bool> _addedEntitiesQuadtreeStatusBuffer;
 
 	ltbl::DynamicQuadtree _quadtree;
 

@@ -20,27 +20,44 @@ void Room::create(Level* pLevel, const std::vector<int> &cellIndices, int backgr
 
 void Room::update(float dt) {
 	std::vector<std::shared_ptr<Entity>> died;
+	std::vector<std::shared_ptr<Entity>> newEntities;
+
+	for (int i = 0; i < _entities.size(); i++) {
+		_entities[i]->removeDeadReferences();
+		_entities[i]->update(dt);
+	}
 
 	// Substeps
 	for (int s = 0; s < _numSubSteps; s++)
-		for (int i = 0; i < _entities.size(); i++)
-			_entities[i]->subUpdate(dt, s, _numSubSteps);
+		for (int i = 0; i < _entities.size(); i++) {
+			if (!_entities[i]->_remove)
+				_entities[i]->subUpdate(dt, s, _numSubSteps);
+		}
 
 	for (int i = 0; i < _entities.size(); i++) {
-		_entities[i]->update(dt);
-
 		if (!_entities[i]->_remove)
-			_newEntities.push_back(_entities[i]);
+			newEntities.push_back(_entities[i]);
 		else
 			died.push_back(_entities[i]);
 	}
 
-	std::sort(_newEntities.begin(), _newEntities.end(), Entity::compareLayers);
+	for (int i = 0; i < died.size(); i++)
+		died[i]->quadtreeRemove();
 
-	_entities = _newEntities;
+	std::sort(newEntities.begin(), newEntities.end(), Entity::compareLayers);
 
-	for (int i = 0; i < _entities.size(); i++)
-		_entities[i]->removeDeadReferences();
+	_entities = newEntities;
+
+	// Add new entities
+	for (int i = 0; i < _addedEntitiesBuffer.size(); i++) {
+		_entities.push_back(_addedEntitiesBuffer[i]);
+
+		if (_addedEntitiesQuadtreeStatusBuffer[i])
+			_quadtree.add(_entities[i].get());
+	}
+
+	_addedEntitiesBuffer.clear();
+	_addedEntitiesQuadtreeStatusBuffer.clear();
 
 	// Remove dead selections
 	for (std::unordered_set<Entity*>::iterator it = getGame()->_selection.begin(); it != getGame()->_selection.end();) {
@@ -49,11 +66,6 @@ void Room::update(float dt) {
 		else
 			it++;
 	}
-
-	for (int i = 0; i < died.size(); i++)
-		died[i]->quadtreeRemove();
-
-	_newEntities.clear();
 }
 
 void Room::render(sf::RenderTarget &rt, const std::vector<std::shared_ptr<sf::Texture>> &backgrounds) {
@@ -70,10 +82,9 @@ void Room::render(sf::RenderTarget &rt, const std::vector<std::shared_ptr<sf::Te
 }
 
 void Room::add(const std::shared_ptr<Entity> &entity, bool addToQuadtree) {
-	_newEntities.push_back(entity);
+	_addedEntitiesBuffer.push_back(entity);
 
-	if (addToQuadtree)
-		_quadtree.add(entity.get());
+	_addedEntitiesQuadtreeStatusBuffer.push_back(addToQuadtree);
 
 	entity->_pCurrentRoom = this;
 }

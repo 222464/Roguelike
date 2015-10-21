@@ -9,24 +9,37 @@ private:
 	sf::Texture _testTexture;
 
 public:
+	float _hp;
+
 	Enemy()
 	{
 		_name = "enemy";
 		_type = 2;
+		_hp = 100.0f;
 	}
 
-	void create();
+	virtual void move(sf::Vector2f &position) {}
+	virtual void attackMove(const sf::Vector2f &position) {}
+	virtual void split() {}
 
-	void setPosition(const sf::Vector2f &position);
+	virtual void hold() {}
 
-	const sf::Vector2f &getPosition() const {
-		return _position;
+	virtual void setPosition(const sf::Vector2f &position) {}
+
+	virtual const sf::Vector2f &getPosition() const {
+		return sf::Vector2f(0.0f, 0.0f);
+	}
+
+	void setRotation(float rotation) {}
+
+	virtual float getRotation() const {
+		return 0.0f;
 	}
 
 	// Inherited from Entity
-	void update(float dt);
+	virtual void update(float dt) {}
 
-	void render(sf::RenderTarget &rt);
+	virtual void render(sf::RenderTarget &rt) {}
 
-	sf::FloatRect getAABB() const;
+	virtual sf::FloatRect getAABB() const = 0;
 };

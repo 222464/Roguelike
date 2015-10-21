@@ -1,11 +1,11 @@
 #pragma once
 
 #include <game/level/room/entities/Entity.h>
-#include "Friendly.h"
+#include "Enemy.h"
 #include <SFML/Audio.hpp>
 
 
-class Marine : public Friendly {
+class EnemyMarine : public Enemy {
 public:
 	struct Stats {
 		float _spinRate;
@@ -46,7 +46,7 @@ private:
 	bool _attack;
 	bool _hold;
 
-	class Enemy* _pTarget;
+	class Friendly* _pTarget;
 
 	float _footCycle;
 	float _footCycleRate;
@@ -73,14 +73,14 @@ private:
 public:
 	static const float _radius;
 
-	Marine();
+	EnemyMarine();
 
 	void create();
 
 	void move(sf::Vector2f &position);
 	void attackMove(const sf::Vector2f &position);
 	void split();
-	
+
 	void hold() {
 		_hold = true;
 	}
