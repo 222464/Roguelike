@@ -239,13 +239,13 @@ void Marine::update(float dt) {
 				case 3:
 					//offset = _position.y - getRoom()->getHeight();
 
-					setPosition(sf::Vector2f(_position.x, getRoom()->_transitDistanceRange));
+					setPosition(sf::Vector2f(_position.x, getRoom()->getHeight() + getRoom()->_transitDistanceRange));
 
 					break;
 				case 2:
 					//offset = -_position.x;
 
-					setPosition(sf::Vector2f(getRoom()->_transitDistanceRange, _position.y));
+					setPosition(sf::Vector2f(getRoom()->getWidth() + getRoom()->_transitDistanceRange, _position.y));
 
 					break;
 				case 1:

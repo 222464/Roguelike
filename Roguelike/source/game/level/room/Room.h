@@ -24,6 +24,8 @@ private:
 
 	int _width, _height;
 
+	std::vector<sf::FloatRect> _walls;
+
 public:
 	int _numSubSteps;
 

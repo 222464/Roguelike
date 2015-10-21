@@ -26,6 +26,31 @@ void Room::create(Level* pLevel, int cellX, int cellY, int width, int height, co
 
 	_width = width;
 	_height = height;
+
+	sf::Vector2f center(_width * 0.5f, _height * 0.5f);
+
+	sf::FloatRect horizontal(0.0f, 0.0f, _portalSize * 2.0f, _portalSize);
+	sf::FloatRect vertical(0.0f, 0.0f, _portalSize, _portalSize * 2.0f);
+
+	const float wallExtention = 256.0f;
+
+	sf::FloatRect wall0(-wallExtention, 0.0f, wallExtention + _wallRange, getHeight() * 0.5f - _portalSize * 0.5f);
+	sf::FloatRect wall1(-wallExtention, center.y + _portalSize * 0.5f, wallExtention + _wallRange, getHeight() * 0.5f - _portalSize * 0.5f);
+	sf::FloatRect wall2(getWidth() - _wallRange, 0.0f, wallExtention + _wallRange, getHeight() * 0.5f - _portalSize * 0.5f);
+	sf::FloatRect wall3(getWidth() - _wallRange, center.y + _portalSize * 0.5f, wallExtention + _wallRange, getHeight() * 0.5f - _portalSize * 0.5f);
+	sf::FloatRect wall4(0.0f, -wallExtention, getWidth() * 0.5f - _portalSize * 0.5f, wallExtention + _wallRange);
+	sf::FloatRect wall5(center.x + _portalSize * 0.5f, -wallExtention + _wallRange, getWidth() * 0.5f - _portalSize * 0.5f, wallExtention + _wallRange);
+	sf::FloatRect wall6(0.0f, getHeight() - _wallRange, getWidth() * 0.5f - _portalSize * 0.5f, wallExtention + _wallRange);
+	sf::FloatRect wall7(center.x + _portalSize * 0.5f, getHeight() - _wallRange, getWidth() * 0.5f - _portalSize * 0.5f, wallExtention + _wallRange);
+	
+	_walls.push_back(wall0);
+	_walls.push_back(wall1);
+	_walls.push_back(wall2);
+	_walls.push_back(wall3);
+	_walls.push_back(wall4);
+	_walls.push_back(wall5);
+	_walls.push_back(wall6);
+	_walls.push_back(wall7);
 }
 
 void Room::update(float dt) {
@@ -248,32 +273,48 @@ int Room::getPortal(const sf::FloatRect &aabb) {
 }
 
 bool Room::wallCollision(sf::FloatRect &aabb) {
-	// Ignore collision on portals
-	if (getPortal(aabb) != -1)
-		return false;
+	std::vector<sf::FloatRect> useWalls = _walls;
 
-	if (aabb.left < _wallRange) {
-		aabb.left = _wallRange;
+	// Update wall statses
+	if (getCellX() > 0 && getLevel()->getCell(getCellX() - 1, getCellY())._room == nullptr)
+		// Close off wall completely
+		useWalls[0].height = 10000.0f;
 
-		return true;
-	}
+	if (getCellX() < getLevel()->getWidth() - 1 && getLevel()->getCell(getCellX() + 1, getCellY())._room == nullptr)
+		// Close off wall completely
+		useWalls[2].height = 10000.0f;
 
-	if (aabb.top < _wallRange) {
-		aabb.top = _wallRange;
+	if (getCellY() > 0 && getLevel()->getCell(getCellX(), getCellY() - 1)._room != nullptr)
+		// Close off wall completely
+		useWalls[3].width = 10000.0f;
 
-		return true;
-	}
+	if (getCellY() < getLevel()->getHeight() - 1 && getLevel()->getCell(getCellX(), getCellY() + 1)._room != nullptr)
+		// Close off wall completely
+		useWalls[5].width = 10000.0f;
 
-	if (aabb.left + aabb.width > getWidth() - _wallRange) {
-		aabb.left = getWidth() - _wallRange - aabb.width;
+	for (int i = 0; i < useWalls.size(); i++) {
+		sf::FloatRect intersection;
 
-		return true;
-	}
+		if (useWalls[i].intersects(aabb, intersection)) {
+			sf::Vector2f aabbCenter = ltbl::rectCenter(aabb);
 
-	if (aabb.top + aabb.height > getHeight() - _wallRange) {
-		aabb.top = getHeight() - _wallRange - aabb.height;
+			sf::Vector2f intersectionCenter = ltbl::rectCenter(intersection);
 
-		return true;
+			if (intersection.width > intersection.height) {	
+				if (intersectionCenter.y > aabbCenter.y)
+					aabb.top += -intersection.height;
+				else
+					aabb.top += intersection.height;
+			}
+			else {
+				if (intersectionCenter.x > aabbCenter.x)
+					aabb.left += -intersection.width;
+				else
+					aabb.left += intersection.width;
+			}
+
+			return true;
+		}
 	}
 
 	return false;
