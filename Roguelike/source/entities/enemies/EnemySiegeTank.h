@@ -35,6 +35,8 @@ public:
 		sf::Texture _siegeTankSelected;
 
 		sf::SoundBuffer _shootSound;
+		sf::SoundBuffer _siegeSound;
+		sf::SoundBuffer _unsiegeSound;
 
 		void load();
 	};
@@ -65,6 +67,8 @@ private:
 	void face(float &angle, float rate, float dt);
 
 	sf::Sound _firingSound;
+	sf::Sound _siegeSound;
+	sf::Sound _unsiegeSound;
 
 	float _fireSoundTimer;
 	float _maxFireSoundTime;

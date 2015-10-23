@@ -15,9 +15,9 @@ EnemySiegeTank::Stats::Stats()
 	_walkRate(30.0f),
 	_range(128.0f),
 	_splitRadius(32.0f),
-	_damage(80.0f),
-	_splashRadius(32.0f),
-	_siegeToggleRate(1.0f)
+	_damage(40.0f),
+	_splashRadius(24.0f),
+	_siegeToggleRate(0.25f)
 {}
 
 void EnemySiegeTank::Assets::load() {
@@ -36,14 +36,20 @@ void EnemySiegeTank::Assets::load() {
 	_siegeTankSelected.loadFromFile("resources/enemies/siegetank/siegetank_selected.png");
 	_siegeTankShadow.loadFromFile("resources/enemies/siegetank/siegetank_shadow.png");
 
-	if (!_shootSound.loadFromFile("resources/sounds/weapons/siegecannon.wav"))
+	if (!_shootSound.loadFromFile("resources/sounds/weapons/cannon1.wav"))
+		abort();
+
+	if (!_siegeSound.loadFromFile("resources/enemies/siegetank/siegesound.wav"))
+		abort();
+
+	if (!_unsiegeSound.loadFromFile("resources/enemies/siegetank/unsiegesound.wav"))
 		abort();
 }
 
 EnemySiegeTank::EnemySiegeTank()
 	: _prevPosition(0.0f, 0.0f), _position(0.0f, 0.0f), _target(0.0f, 0.0f), _pTarget(nullptr), _hold(false),
 	_rotation(0.0f), _cannonRotation(0.0f), _attack(false), _footCycle(0.0f), _footCycleRate(0.09f),
-	_firingCycle(0.0f), _firingCycleRate(1.0f), _currentFlash(0), _fireSoundTimer(0.0f), _maxFireSoundTime(0.05f),
+	_firingCycle(0.0f), _firingCycleRate(0.5f), _currentFlash(0), _fireSoundTimer(0.0f), _maxFireSoundTime(0.05f),
 	_isSelected(false), _idleFaceDirection(0.0f), _idleFaceTime(5.0f), _lastFacedDirection(0.0f), _hitWall(false),
 	_siegeDelta(0), _siege(0.0f)
 {
@@ -81,6 +87,14 @@ void EnemySiegeTank::create() {
 	_firingSound.setBuffer(_assets->_shootSound);
 
 	_firingSound.setVolume(100);
+
+	_siegeSound.setBuffer(_assets->_siegeSound);
+
+	_siegeSound.setVolume(25);
+
+	_unsiegeSound.setBuffer(_assets->_unsiegeSound);
+
+	_unsiegeSound.setVolume(25);
 
 	// Give it a slight layer offset
 	std::uniform_real_distribution<float> layerDist(0.01f, 0.015f);
@@ -214,10 +228,15 @@ void EnemySiegeTank::face(float &angle, float rate, float dt) {
 }
 
 void EnemySiegeTank::update(float dt) {
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
-		siegeMode(true);
-	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
-		siegeMode(false);
+	// Temporary, auto-siege (REMOVE)
+	siegeMode(true);
+
+	if (_siege == 1.0f && _siegeDelta == -1) {
+		_unsiegeSound.play();
+	}
+	else if (_siege == 0.0f && _siegeDelta == 1) {
+		_siegeSound.play();
+	}
 
 	_siege = std::min(1.0f, std::max(0.0f, _siege + _siegeDelta * _stats->_siegeToggleRate * dt));
 
@@ -295,6 +314,15 @@ void EnemySiegeTank::update(float dt) {
 
 				fired = true;
 
+				// Randomize pitch and volume a bit
+				std::uniform_real_distribution<float> pitchDist(0.8f, 1.0f);
+				std::uniform_real_distribution<float> volumeDist(10.0f, 20.0f);
+
+				_firingSound.setPitch(pitchDist(getGame()->_generator));
+				_firingSound.setVolume(volumeDist(getGame()->_generator));
+
+				_firingSound.play();
+
 				// Spawn shell
 				std::shared_ptr<Shell> shell = std::make_shared<Shell>();
 
@@ -314,7 +342,7 @@ void EnemySiegeTank::update(float dt) {
 				_firingCycle += _firingCycleRate * dt;
 
 			// Play firing sound
-			if (_firingSound.getStatus() != sf::Sound::Playing) {
+			/*if (_firingSound.getStatus() != sf::Sound::Playing) {
 				if (_fireSoundTimer <= 0.0f) {
 					// Randomize pitch and volume a bit
 					std::uniform_real_distribution<float> pitchDist(0.8f, 1.0f);
@@ -328,11 +356,11 @@ void EnemySiegeTank::update(float dt) {
 				else
 					_fireSoundTimer -= dt;
 			}
-			else {
+			else if (fired) {
 				std::uniform_real_distribution<float> fireSoundDist(0.0f, _maxFireSoundTime);
 
 				_fireSoundTimer = fireSoundDist(getGame()->_generator);
-			}
+			}*/
 
 			if (fired) {
 				// Damage targets in radius

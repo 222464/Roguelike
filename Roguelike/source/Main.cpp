@@ -42,14 +42,14 @@ int main() {
 
 	std::vector<std::shared_ptr<Marine>> marines;
 
-	for (int i = 0; i < 64; i++) {
+	for (int i = 0; i < 32; i++) {
 		std::shared_ptr<Marine> marine = std::make_shared<Marine>();
 
 		g.getCurrentLevel()->getCurrentRoom().add(marine);
 
 		marine->create();
 
-		std::uniform_real_distribution<float> marineDist(128.0f - 40.0f, 128.0 + 40.0f);
+		std::uniform_real_distribution<float> marineDist(128.0f - 60.0f, 128.0 + 60.0f);
 
 		marine->setPosition(sf::Vector2f(marineDist(generator), marineDist(generator)));
 
@@ -71,7 +71,7 @@ int main() {
 
 					marine->create();
 
-					std::uniform_real_distribution<float> marineDist(128.0f - 80.0f, 128.0 + 80.0f);
+					std::uniform_real_distribution<float> marineDist(128.0f - 40.0f, 128.0 + 40.0f);
 
 					marine->setPosition(sf::Vector2f(marineDist(generator), marineDist(generator)));
 
