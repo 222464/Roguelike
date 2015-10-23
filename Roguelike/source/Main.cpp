@@ -4,6 +4,7 @@
 
 #include <entities/units/Marine.h>
 #include <entities/enemies/EnemyMarine.h>
+#include <entities/enemies/EnemySiegeTank.h>
 
 #include <time.h>
 #include <iostream>
@@ -63,14 +64,14 @@ int main() {
 				continue;
 
 			if (g.getCurrentLevel()->getCell(x, y)._room != nullptr) {
-				for (int i = 0; i < 20; i++) {
-					std::shared_ptr<EnemyMarine> marine = std::make_shared<EnemyMarine>();
+				for (int i = 0; i < 4; i++) {
+					std::shared_ptr<EnemySiegeTank> marine = std::make_shared<EnemySiegeTank>();
 
 					g.getCurrentLevel()->getCell(x, y)._room->add(marine);
 
 					marine->create();
 
-					std::uniform_real_distribution<float> marineDist(128.0f - 40.0f, 128.0 + 40.0f);
+					std::uniform_real_distribution<float> marineDist(128.0f - 80.0f, 128.0 + 80.0f);
 
 					marine->setPosition(sf::Vector2f(marineDist(generator), marineDist(generator)));
 

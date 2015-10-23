@@ -430,7 +430,7 @@ void Marine::update(float dt) {
 	}
 
 	// If not walking
-	if (std::abs(_footCycle) < 0.02f) {
+	if (std::abs(_footCycle) < 0.02f && _pTarget == nullptr) {
 		if (_idleFaceTimer < 0.0f) {
 			std::uniform_real_distribution<float> newTimeDist(_idleFaceTime * 0.5f, _idleFaceTime);
 
