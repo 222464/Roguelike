@@ -10,12 +10,13 @@ private:
 
 public:
 	float _hp;
+    float _maxhp;
 
 	Enemy()
 	{
 		_name = "enemy";
 		_type = 2;
-		_hp = 100.0f;
+        _maxhp = _hp = 100.0f;
 	}
 
 	virtual void move(sf::Vector2f &position) {}

@@ -227,4 +227,12 @@ void Level::transition(int dir) {
 
 	for (int i = 0; i < getCell(_currentCellX, _currentCellY)._room->_transitLimbo.size(); i++)
 		getCell(_currentCellX, _currentCellY)._room->_transitLimbo[i]->_timeSinceTransit = minTime - getCell(_currentCellX, _currentCellY)._room->_transitLimbo[i]->_timeSinceTransit;
+
+	// If just finished transition, add all units to selection by default
+	getGame()->_selection.clear();
+
+	for (int i = 0; i < getCell(_currentCellX, _currentCellY)._room->_transitLimbo.size(); i++)
+		getGame()->_selection.insert(getCell(_currentCellX, _currentCellY)._room->_transitLimbo[i].get());
+
+    getCurrentRoom().healEnemies();
 }

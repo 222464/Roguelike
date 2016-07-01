@@ -2,9 +2,11 @@
 
 #include "../Level.h"
 #include "../../Game.h"
+#include "../../../entities/enemies/Enemy.h"
+#include "../../../entities/units/Friendly.h"
 
 Room::Room()
-	: _pLevel(nullptr), _numSubSteps(8), _portalSize(36.0f), _transitDistanceRange(8.0f), _wallRange(16.0f)
+	: _pLevel(nullptr), _numSubSteps(8), _portalSize(36.0f), _transitDistanceRange(8.0f), _wallRange(16.0f), _cleared(false)
 {}
 
 Level* Room::getLevel() const {
@@ -125,7 +127,7 @@ void Room::update(float dt) {
 		_entities.push_back(_addedEntitiesBuffer[i]);
 
 		if (_addedEntitiesQuadtreeStatusBuffer[i])
-			_quadtree.add(_entities[i].get());
+			_quadtree.add(_addedEntitiesBuffer[i].get());
 	}
 
 	_addedEntitiesBuffer.clear();
@@ -159,6 +161,19 @@ void Room::update(float dt) {
 		else
 			it++;
 	}
+
+    // Check if there are any enemies left
+    _cleared = true;
+
+    for (int i = 0; i < _entities.size(); i++)
+        if (_entities[i]->_type == 2) {
+            _cleared = false;
+
+            break;
+        }
+
+    if (_cleared)
+        healFriendlies();
 }
 
 void Room::render(sf::RenderTarget &rt,
@@ -348,4 +363,22 @@ bool Room::wallCollision(sf::FloatRect &aabb) {
 	}
 
 	return false;
+}
+
+void Room::healEnemies() {
+    for (int i = 0; i < _entities.size(); i++)
+        if (_entities[i]->_type == 2) {
+            Enemy* pEnemy = static_cast<Enemy*>(_entities[i].get());
+
+            pEnemy->_hp = pEnemy->_maxhp;
+        }
+}
+
+void Room::healFriendlies() {
+    for (int i = 0; i < _entities.size(); i++)
+        if (_entities[i]->_type == 1) {
+            Friendly* pEnemy = static_cast<Friendly*>(_entities[i].get());
+
+            pEnemy->_hp = pEnemy->_maxhp;
+        }
 }

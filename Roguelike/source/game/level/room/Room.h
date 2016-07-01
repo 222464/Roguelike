@@ -35,6 +35,8 @@ public:
 
 	float _wallRange;
 
+    bool _cleared;
+
 	Room();
 
 	void create(Level* pLevel, int cellX, int cellY, int width, int height, const std::vector<int> &cellIndices, int background);
@@ -82,6 +84,9 @@ public:
 	int getCellY() const {
 		return _cellY;
 	}
+
+    void healEnemies();
+    void healFriendlies();
 
 	friend class Level;
 };

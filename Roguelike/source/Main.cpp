@@ -16,7 +16,7 @@ int main() {
 	sf::ContextSettings glContextSettings;
 	glContextSettings.antialiasingLevel = 4;
 
-	window.create(sf::VideoMode(800, 800), "Roguelike", sf::Style::Default, glContextSettings);
+	window.create(sf::VideoMode(900, 900), "Roguelike", sf::Style::Default, glContextSettings);
 
 	window.setFramerateLimit(60);
 	window.setVerticalSyncEnabled(true);
@@ -42,7 +42,7 @@ int main() {
 
 	std::vector<std::shared_ptr<Marine>> marines;
 
-	for (int i = 0; i < 32; i++) {
+	for (int i = 0; i < 10; i++) {
 		std::shared_ptr<Marine> marine = std::make_shared<Marine>();
 
 		g.getCurrentLevel()->getCurrentRoom().add(marine);
@@ -64,18 +64,32 @@ int main() {
 				continue;
 
 			if (g.getCurrentLevel()->getCell(x, y)._room != nullptr) {
-				for (int i = 0; i < 4; i++) {
-					std::shared_ptr<EnemySiegeTank> marine = std::make_shared<EnemySiegeTank>();
+				for (int i = 0; i < 5; i++) {			
+					std::shared_ptr<EnemyMarine> marine = std::make_shared<EnemyMarine>();
 
 					g.getCurrentLevel()->getCell(x, y)._room->add(marine);
 
 					marine->create();
 
-					std::uniform_real_distribution<float> marineDist(128.0f - 40.0f, 128.0 + 40.0f);
+					std::uniform_real_distribution<float> marineDist(128.0f - 60.0f, 128.0 + 60.0f);
 
 					marine->setPosition(sf::Vector2f(marineDist(generator), marineDist(generator)));
 
 					marine->stop();
+				}
+
+				for (int i = 0; i < 1; i++) {
+					std::shared_ptr<EnemySiegeTank> tank = std::make_shared<EnemySiegeTank>();
+
+					g.getCurrentLevel()->getCell(x, y)._room->add(tank);
+
+					tank->create();
+
+					std::uniform_real_distribution<float> marineDist(128.0f - 40.0f, 128.0 + 40.0f);
+
+					tank->setPosition(sf::Vector2f(marineDist(generator), marineDist(generator)));
+
+					tank->stop();
 				}
 			}
 		}
@@ -118,7 +132,7 @@ int main() {
 		g.update(0.017f);
 		g.render(window);
 
-		orderGivenPrev = orderGiven;
+        orderGiven = false;
 
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
 			for (std::unordered_set<Entity*>::iterator it = g._selection.begin(); it != g._selection.end(); it++)
@@ -127,7 +141,7 @@ int main() {
 				}
 
 			attack = false;
-			orderGiven = false; // Instant order
+			orderGiven = true;
 		}
 
 		if (sf::Mouse::isButtonPressed(sf::Mouse::Right) && !prevRMBDown) {
@@ -176,12 +190,10 @@ int main() {
 				orderGiven = true;
 			}
 		}
-		else if (!sf::Mouse::isButtonPressed(sf::Mouse::Left) && prevLMBDown)
-			orderGiven = false;
 
 		if (!orderGiven && !orderGivenPrev) {
-			if (!sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
-				if (prevLMBDown && selecting) {
+			if (!sf::Mouse::isButtonPressed(sf::Mouse::Left) && prevLMBDown) {
+				if (selecting) {
 					// Make selection
 					sf::Vector2f selectionEnd = window.mapPixelToCoords(sf::Mouse::getPosition(window));
 
@@ -190,15 +202,15 @@ int main() {
 					selecting = false;
 				}
 			}
-			else {
-				if (!prevLMBDown && !selecting) {
-					selectionStart = window.mapPixelToCoords(sf::Mouse::getPosition(window));
+			else if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && !prevLMBDown) {
+				selectionStart = window.mapPixelToCoords(sf::Mouse::getPosition(window));
 
-					selecting = true;
-				}
+				selecting = true;
 			}
 		}
 		
+        orderGivenPrev = orderGiven;
+
 		if (selecting) {
 			sf::Vector2f selectionCurrent = window.mapPixelToCoords(sf::Mouse::getPosition(window));
 

@@ -15,9 +15,9 @@ EnemySiegeTank::Stats::Stats()
 	_walkRate(30.0f),
 	_range(128.0f),
 	_splitRadius(32.0f),
-	_damage(40.0f),
+	_damage(60.0f),
 	_splashRadius(24.0f),
-	_siegeToggleRate(0.25f)
+	_siegeToggleRate(0.6f)
 {}
 
 void EnemySiegeTank::Assets::load() {
@@ -56,7 +56,7 @@ EnemySiegeTank::EnemySiegeTank()
 	_name = "enemy_siegetank";
 	_type = 2;
 
-	_hp = 400;
+    _maxhp = _hp = 400;
 
 	_idleFaceTimer = _idleFaceTime;
 }

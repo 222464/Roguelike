@@ -11,10 +11,10 @@ const float Marine::_radius = 4.0f;
 
 Marine::Stats::Stats()
 	: _spinRate(720.0f), _idleSpinRate(60.0f),
-	_walkRate(30.0f),
+	_walkRate(60.0f),
 	_range(64.0f),
 	_splitRadius(32.0f),
-	_damage(20.0f)
+	_damage(40.0f)
 {}
 
 void Marine::Assets::load() {
@@ -113,7 +113,11 @@ void Marine::transitMove(sf::Vector2f &position) {
 	_target = position;
 	_pTarget = nullptr;
 	_hold = false;
-	_wantsTransit = true;
+
+    // Can only transit if cleared
+    if (getRoom()->_cleared)
+	    _wantsTransit = true;
+
 	_stuckTimer = 0.0f;
 }
 
@@ -420,13 +424,13 @@ void Marine::update(float dt) {
 	// Walk on screen if offscreen
 	if (!_wantsTransit) {
 		if (_position.x < _radius * 2.0f + getRoom()->_wallRange)
-			_target = _position + sf::Vector2f(getRoom()->_wallRange + getRoom()->_portalSize, 0.0f);
+			_target = sf::Vector2f(_radius * 2.0f + getRoom()->_wallRange, _position.y);
 		if (_position.y < _radius * 2.0f + getRoom()->_wallRange)
-			_target = _position + sf::Vector2f(0.0f, getRoom()->_wallRange + getRoom()->_portalSize);
+			_target = sf::Vector2f(_position.x, _radius * 2.0f + getRoom()->_wallRange);
 		if (_position.x > getRoom()->getWidth() - _radius * 2.0f - getRoom()->_wallRange)
-			_target = _position + sf::Vector2f(-getRoom()->_wallRange - getRoom()->_portalSize, 0.0f);
+			_target = sf::Vector2f(getRoom()->getWidth() - _radius * 2.0f - getRoom()->_wallRange, _position.y);
 		if (_position.y > getRoom()->getHeight() - _radius * 2.0f - getRoom()->_wallRange)
-			_target = _position + sf::Vector2f(0.0f, -getRoom()->_wallRange - getRoom()->_portalSize);
+			_target = sf::Vector2f(_position.x, getRoom()->getHeight() - _radius * 2.0f - getRoom()->_wallRange);
 	}
 
 	// If not walking
