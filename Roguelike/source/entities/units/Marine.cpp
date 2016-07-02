@@ -551,7 +551,7 @@ void Marine::render(sf::RenderTarget &rt) {
 	sf::Vector2f forward(perpendicular.y, -perpendicular.x);
 
 	const float feetSpread = 1.5f;
-	const float feetStepDistance = 2.5f;
+	const float feetStepDistance = 2.9f;
 
 	float leftFootOffset = std::sin(2.0f * ltbl::_pi * _footCycle);
 

@@ -64,7 +64,7 @@ int main() {
 				continue;
 
 			if (g.getCurrentLevel()->getCell(x, y)._room != nullptr) {
-				for (int i = 0; i < 5; i++) {			
+				for (int i = 0; i < 10; i++) {			
 					std::shared_ptr<EnemyMarine> marine = std::make_shared<EnemyMarine>();
 
 					g.getCurrentLevel()->getCell(x, y)._room->add(marine);
@@ -78,7 +78,7 @@ int main() {
 					marine->stop();
 				}
 
-				for (int i = 0; i < 1; i++) {
+				for (int i = 0; i < 2; i++) {
 					std::shared_ptr<EnemySiegeTank> tank = std::make_shared<EnemySiegeTank>();
 
 					g.getCurrentLevel()->getCell(x, y)._room->add(tank);
@@ -143,32 +143,20 @@ int main() {
 			attack = false;
 			orderGiven = true;
 		}
+		//else if (!sf::Mouse::isButtonPressed(sf::Mouse::Right) && prevRMBDown)
+		//	orderGiven = false;
 
-		if (sf::Mouse::isButtonPressed(sf::Mouse::Right) && !prevRMBDown) {
-			for (std::unordered_set<Entity*>::iterator it = g._selection.begin(); it != g._selection.end(); it++)
-				if ((*it)->_type == 1) {
-					static_cast<Friendly*>(*it)->move(window.mapPixelToCoords(sf::Mouse::getPosition(window)));
-				}
-
-			attack = false;
-			orderGiven = true;
-		}
-		else if (!sf::Mouse::isButtonPressed(sf::Mouse::Right) && prevRMBDown)
-			orderGiven = false;
-
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::A) && !prevADown) {
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
 			attack = true;
-			orderGiven = true;
-		}
-		else if (!sf::Keyboard::isKeyPressed(sf::Keyboard::A) && prevADown)
-			orderGiven = false;
 
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::T) && !prevTDown) {
+		//else if (!sf::Keyboard::isKeyPressed(sf::Keyboard::A) && prevADown)
+		//	orderGiven = false;
+
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::T))
 			transit = true;
-			orderGiven = true;
-		}
-		else if (!sf::Keyboard::isKeyPressed(sf::Keyboard::T) && prevTDown)
-			orderGiven = false;
+
+		//else if (!sf::Keyboard::isKeyPressed(sf::Keyboard::T) && prevTDown)
+		//	orderGiven = false;
 		
 		if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && !prevLMBDown) {		
 			if (attack) {
@@ -190,6 +178,16 @@ int main() {
 				orderGiven = true;
 			}
 		}
+
+        if (sf::Mouse::isButtonPressed(sf::Mouse::Right) && !prevRMBDown) {
+            for (std::unordered_set<Entity*>::iterator it = g._selection.begin(); it != g._selection.end(); it++)
+                if ((*it)->_type == 1) {
+                    static_cast<Friendly*>(*it)->move(window.mapPixelToCoords(sf::Mouse::getPosition(window)));
+                }
+
+            attack = false;
+            orderGiven = true;
+        }
 
 		if (!orderGiven && !orderGivenPrev) {
 			if (!sf::Mouse::isButtonPressed(sf::Mouse::Left) && prevLMBDown) {
