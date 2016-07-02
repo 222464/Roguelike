@@ -10,13 +10,21 @@
 #include <iostream>
 #include <random>
 
+sf::View view;
+int windowSquareSize;
+
+sf::Vector2f getMousePos(const sf::Vector2f &pos, const sf::Sprite &gameSprite) {
+    sf::Vector2f offsetPos = pos - gameSprite.getPosition();
+    return sf::Vector2f(offsetPos.x / gameSprite.getScale().x * static_cast<float>(view.getSize().x) / windowSquareSize, offsetPos.y / gameSprite.getScale().y * static_cast<float>(view.getSize().y) / windowSquareSize) + sf::Vector2f(128.0f, 128.0f);
+}
+
 int main() {
 	sf::RenderWindow window;
 
 	sf::ContextSettings glContextSettings;
 	glContextSettings.antialiasingLevel = 4;
 
-	window.create(sf::VideoMode(900, 900), "Roguelike", sf::Style::Default, glContextSettings);
+	window.create(sf::VideoMode(1920, 1080), "Roguelike", sf::Style::Fullscreen, glContextSettings);
 
 	window.setFramerateLimit(60);
 	window.setVerticalSyncEnabled(true);
@@ -25,9 +33,15 @@ int main() {
 
 	// ---------------------------- Game Loop -----------------------------
 
-	sf::View view = window.getDefaultView();
+    sf::RenderTexture gameTarget;
 
-	view.setSize(sf::Vector2f(256.0f, 256.0f));
+    windowSquareSize = std::min(window.getSize().x, window.getSize().y);
+
+    gameTarget.create(windowSquareSize, windowSquareSize);
+
+	view = gameTarget.getDefaultView();
+
+	view.setSize(256.0f, 256.0f);
 	view.setCenter(sf::Vector2f(view.getSize().x * 0.5f, view.getSize().y * 0.5f));
 
 	bool quit = false;
@@ -125,12 +139,27 @@ int main() {
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
 			quit = true;
 
-		window.clear();
+        gameTarget.clear();
 
-		window.setView(view);
+        gameTarget.setView(view);
 
 		g.update(0.017f);
-		g.render(window);
+		g.render(gameTarget);
+
+        gameTarget.display();
+
+        window.clear();
+
+        sf::Sprite gameSprite;
+        gameSprite.setTexture(gameTarget.getTexture());
+
+        gameSprite.setOrigin(gameTarget.getSize().x * 0.5f, gameTarget.getSize().y * 0.5f);
+
+        gameSprite.setPosition(window.getSize().x * 0.5f, window.getSize().y * 0.5f);
+
+        gameSprite.setScale(static_cast<float>(windowSquareSize) / gameTarget.getSize().x, static_cast<float>(windowSquareSize) / gameTarget.getSize().y);
+
+        window.draw(gameSprite);
 
         orderGiven = false;
 
@@ -162,7 +191,7 @@ int main() {
 			if (attack) {
 				for (std::unordered_set<Entity*>::iterator it = g._selection.begin(); it != g._selection.end(); it++)
 					if ((*it)->_type == 1) {
-						static_cast<Friendly*>(*it)->attackMove(window.mapPixelToCoords(sf::Mouse::getPosition(window)));
+						static_cast<Friendly*>(*it)->attackMove(getMousePos(window.mapPixelToCoords(sf::Mouse::getPosition(window)), gameSprite));
 					}
 
 				attack = false;
@@ -171,7 +200,7 @@ int main() {
 			else if (transit) {
 				for (std::unordered_set<Entity*>::iterator it = g._selection.begin(); it != g._selection.end(); it++)
 					if ((*it)->_type == 1) {
-						static_cast<Friendly*>(*it)->transitMove(window.mapPixelToCoords(sf::Mouse::getPosition(window)));
+						static_cast<Friendly*>(*it)->transitMove(getMousePos(window.mapPixelToCoords(sf::Mouse::getPosition(window)), gameSprite));
 					}
 
 				transit = false;
@@ -182,7 +211,7 @@ int main() {
         if (sf::Mouse::isButtonPressed(sf::Mouse::Right) && !prevRMBDown) {
             for (std::unordered_set<Entity*>::iterator it = g._selection.begin(); it != g._selection.end(); it++)
                 if ((*it)->_type == 1) {
-                    static_cast<Friendly*>(*it)->move(window.mapPixelToCoords(sf::Mouse::getPosition(window)));
+                    static_cast<Friendly*>(*it)->move(getMousePos(window.mapPixelToCoords(sf::Mouse::getPosition(window)), gameSprite));
                 }
 
             attack = false;
@@ -193,15 +222,15 @@ int main() {
 			if (!sf::Mouse::isButtonPressed(sf::Mouse::Left) && prevLMBDown) {
 				if (selecting) {
 					// Make selection
-					sf::Vector2f selectionEnd = window.mapPixelToCoords(sf::Mouse::getPosition(window));
+                    sf::Vector2f selectionEnd = window.mapPixelToCoords(sf::Mouse::getPosition(window));
 
-					g.select(ltbl::rectFromBounds(selectionStart - sf::Vector2f(0.01f, 0.01f), selectionEnd + sf::Vector2f(0.01f, 0.01f)));
+					g.select(ltbl::rectFromBounds(getMousePos(selectionStart, gameSprite) - sf::Vector2f(0.01f, 0.01f), getMousePos(selectionEnd, gameSprite) + sf::Vector2f(0.01f, 0.01f)));
 
 					selecting = false;
 				}
 			}
 			else if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && !prevLMBDown) {
-				selectionStart = window.mapPixelToCoords(sf::Mouse::getPosition(window));
+                selectionStart = window.mapPixelToCoords(sf::Mouse::getPosition(window));
 
 				selecting = true;
 			}
