@@ -3,7 +3,7 @@
 #include <game/Game.h>
 
 #include <entities/units/Marine.h>
-#include <entities/enemies/EnemyMarine.h>
+#include <entities/enemies/EnemyGrunt.h>
 #include <entities/enemies/EnemySiegeTank.h>
 
 #include <time.h>
@@ -24,7 +24,7 @@ int main() {
 	sf::ContextSettings glContextSettings;
 	glContextSettings.antialiasingLevel = 4;
 
-	window.create(sf::VideoMode(1920, 1080), "Roguelike", sf::Style::Fullscreen, glContextSettings);
+	window.create(sf::VideoMode(1920, 1200), "Roguelike", sf::Style::Fullscreen, glContextSettings);
 
 	window.setFramerateLimit(60);
 	window.setVerticalSyncEnabled(true);
@@ -56,7 +56,7 @@ int main() {
 
 	std::vector<std::shared_ptr<Marine>> marines;
 
-	for (int i = 0; i < 10; i++) {
+	for (int i = 0; i < 4; i++) {
 		std::shared_ptr<Marine> marine = std::make_shared<Marine>();
 
 		g.getCurrentLevel()->getCurrentRoom().add(marine);
@@ -78,21 +78,21 @@ int main() {
 				continue;
 
 			if (g.getCurrentLevel()->getCell(x, y)._room != nullptr) {
-				for (int i = 0; i < 10; i++) {			
-					std::shared_ptr<EnemyMarine> marine = std::make_shared<EnemyMarine>();
+				for (int i = 0; i < 8; i++) {			
+					std::shared_ptr<EnemyGrunt> grunt = std::make_shared<EnemyGrunt>();
 
-					g.getCurrentLevel()->getCell(x, y)._room->add(marine);
+					g.getCurrentLevel()->getCell(x, y)._room->add(grunt);
 
-					marine->create();
+                    grunt->create();
 
-					std::uniform_real_distribution<float> marineDist(128.0f - 60.0f, 128.0 + 60.0f);
+					std::uniform_real_distribution<float> gruntDist(128.0f - 60.0f, 128.0 + 60.0f);
 
-					marine->setPosition(sf::Vector2f(marineDist(generator), marineDist(generator)));
+                    grunt->setPosition(sf::Vector2f(gruntDist(generator), gruntDist(generator)));
 
-					marine->stop();
+                    grunt->stop();
 				}
 
-				for (int i = 0; i < 2; i++) {
+				/*for (int i = 0; i < 2; i++) {
 					std::shared_ptr<EnemySiegeTank> tank = std::make_shared<EnemySiegeTank>();
 
 					g.getCurrentLevel()->getCell(x, y)._room->add(tank);
@@ -104,7 +104,7 @@ int main() {
 					tank->setPosition(sf::Vector2f(marineDist(generator), marineDist(generator)));
 
 					tank->stop();
-				}
+				}*/
 			}
 		}
 
@@ -161,8 +161,6 @@ int main() {
 
         window.draw(gameSprite);
 
-        orderGiven = false;
-
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
 			for (std::unordered_set<Entity*>::iterator it = g._selection.begin(); it != g._selection.end(); it++)
 				if ((*it)->_type == 1) {
@@ -175,50 +173,23 @@ int main() {
 		//else if (!sf::Mouse::isButtonPressed(sf::Mouse::Right) && prevRMBDown)
 		//	orderGiven = false;
 
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
-			attack = true;
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
+            attack = true;
+            orderGiven = true;
+        }
 
 		//else if (!sf::Keyboard::isKeyPressed(sf::Keyboard::A) && prevADown)
 		//	orderGiven = false;
 
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::T))
-			transit = true;
-
-		//else if (!sf::Keyboard::isKeyPressed(sf::Keyboard::T) && prevTDown)
-		//	orderGiven = false;
-		
-		if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && !prevLMBDown) {		
-			if (attack) {
-				for (std::unordered_set<Entity*>::iterator it = g._selection.begin(); it != g._selection.end(); it++)
-					if ((*it)->_type == 1) {
-						static_cast<Friendly*>(*it)->attackMove(getMousePos(window.mapPixelToCoords(sf::Mouse::getPosition(window)), gameSprite));
-					}
-
-				attack = false;
-				orderGiven = true;
-			}
-			else if (transit) {
-				for (std::unordered_set<Entity*>::iterator it = g._selection.begin(); it != g._selection.end(); it++)
-					if ((*it)->_type == 1) {
-						static_cast<Friendly*>(*it)->transitMove(getMousePos(window.mapPixelToCoords(sf::Mouse::getPosition(window)), gameSprite));
-					}
-
-				transit = false;
-				orderGiven = true;
-			}
-		}
-
-        if (sf::Mouse::isButtonPressed(sf::Mouse::Right) && !prevRMBDown) {
-            for (std::unordered_set<Entity*>::iterator it = g._selection.begin(); it != g._selection.end(); it++)
-                if ((*it)->_type == 1) {
-                    static_cast<Friendly*>(*it)->move(getMousePos(window.mapPixelToCoords(sf::Mouse::getPosition(window)), gameSprite));
-                }
-
-            attack = false;
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::T)) {
+            transit = true;
             orderGiven = true;
         }
 
-		if (!orderGiven && !orderGivenPrev) {
+		//else if (!sf::Keyboard::isKeyPressed(sf::Keyboard::T) && prevTDown)
+		//	orderGiven = false;
+
+		if (!orderGiven) {
 			if (!sf::Mouse::isButtonPressed(sf::Mouse::Left) && prevLMBDown) {
 				if (selecting) {
 					// Make selection
@@ -235,6 +206,41 @@ int main() {
 				selecting = true;
 			}
 		}
+
+        if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && !prevLMBDown) {
+            if (attack) {
+                for (std::unordered_set<Entity*>::iterator it = g._selection.begin(); it != g._selection.end(); it++)
+                    if ((*it)->_type == 1) {
+                        static_cast<Friendly*>(*it)->attackMove(getMousePos(window.mapPixelToCoords(sf::Mouse::getPosition(window)), gameSprite));
+                    }
+
+                attack = false;
+            }
+            else if (transit) {
+                for (std::unordered_set<Entity*>::iterator it = g._selection.begin(); it != g._selection.end(); it++)
+                    if ((*it)->_type == 1) {
+                        static_cast<Friendly*>(*it)->transitMove(getMousePos(window.mapPixelToCoords(sf::Mouse::getPosition(window)), gameSprite));
+                    }
+
+                transit = false;
+            }
+        }
+
+        if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && !prevLMBDown)
+            orderGiven = false;
+
+        if (sf::Mouse::isButtonPressed(sf::Mouse::Right) && !prevRMBDown)
+            orderGiven = false;
+
+        if (sf::Mouse::isButtonPressed(sf::Mouse::Right) && !prevRMBDown) {
+            for (std::unordered_set<Entity*>::iterator it = g._selection.begin(); it != g._selection.end(); it++)
+                if ((*it)->_type == 1) {
+                    static_cast<Friendly*>(*it)->move(getMousePos(window.mapPixelToCoords(sf::Mouse::getPosition(window)), gameSprite));
+                }
+
+            attack = false;
+            orderGiven = false;
+        }
 		
         orderGivenPrev = orderGiven;
 

@@ -16,7 +16,7 @@ EnemySiegeTank::Stats::Stats()
 	_range(128.0f),
 	_splitRadius(32.0f),
 	_damage(60.0f),
-	_splashRadius(24.0f),
+	_splashRadius(48.0f),
 	_siegeToggleRate(0.6f)
 {}
 

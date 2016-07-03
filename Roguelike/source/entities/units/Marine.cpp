@@ -14,7 +14,7 @@ Marine::Stats::Stats()
 	_walkRate(60.0f),
 	_range(64.0f),
 	_splitRadius(32.0f),
-	_damage(40.0f)
+	_damage(60.0f)
 {}
 
 void Marine::Assets::load() {
@@ -45,6 +45,8 @@ Marine::Marine()
 {
 	_name = "marine";
 	_type = 1;
+
+    _maxhp = _hp = 300.0f;
 
 	_idleFaceTimer = _idleFaceTime;
 }
@@ -424,13 +426,13 @@ void Marine::update(float dt) {
 	// Walk on screen if offscreen
 	if (!_wantsTransit) {
 		if (_position.x < _radius * 2.0f + getRoom()->_wallRange)
-			_target = sf::Vector2f(_radius * 2.0f + getRoom()->_wallRange, _position.y);
+			_target = sf::Vector2f(_radius * 2.0f + getRoom()->_wallRange + 0.1f, _position.y);
 		if (_position.y < _radius * 2.0f + getRoom()->_wallRange)
-			_target = sf::Vector2f(_position.x, _radius * 2.0f + getRoom()->_wallRange);
+			_target = sf::Vector2f(_position.x, _radius * 2.0f + getRoom()->_wallRange + 0.1f);
 		if (_position.x > getRoom()->getWidth() - _radius * 2.0f - getRoom()->_wallRange)
-			_target = sf::Vector2f(getRoom()->getWidth() - _radius * 2.0f - getRoom()->_wallRange, _position.y);
+			_target = sf::Vector2f(getRoom()->getWidth() - _radius * 2.0f - getRoom()->_wallRange - 0.1f, _position.y);
 		if (_position.y > getRoom()->getHeight() - _radius * 2.0f - getRoom()->_wallRange)
-			_target = sf::Vector2f(_position.x, getRoom()->getHeight() - _radius * 2.0f - getRoom()->_wallRange);
+			_target = sf::Vector2f(_position.x, getRoom()->getHeight() - _radius * 2.0f - getRoom()->_wallRange - 0.1f);
 	}
 
 	// If not walking
